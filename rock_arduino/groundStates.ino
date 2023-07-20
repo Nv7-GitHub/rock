@@ -1,7 +1,7 @@
+#include "states.h"
+
 unsigned long lastWrite = millis();
 const int writeInterval = 250;
-
-extern enum STATE;
 
 bool canWrite() {
   unsigned long currentTime = millis();
@@ -32,7 +32,7 @@ void readyState() {
   writeData();
 
   if (getAccel() > LAUNCH_THRESHOLD) {
-    setState(STATE_RISING);
+    setState(STATE_ASCENT);
   }
 }
 

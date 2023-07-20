@@ -1,6 +1,6 @@
-const int APOGEE_THRESHOLD = 0.5; // Apogee of vertical velocity is less than this value (m/s)
+#include "states.h"
 
-extern enum STATE;
+const int APOGEE_THRESHOLD = 0.5; // Apogee of vertical velocity is less than this value (m/s)
 
 void ascentState() {
   writeData();

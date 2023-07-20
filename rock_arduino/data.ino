@@ -9,7 +9,7 @@ Data Recorded:
 - Raw sensor vals (accelX, accelY, accelZ, barometer)
 */
 
-extern enum STATE;
+#include "states.h"
 
 unsigned long startTime = 0;
 void startRecording() {
