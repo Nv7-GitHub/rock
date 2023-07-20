@@ -5,6 +5,8 @@ void setup() {
 
 void loop() {
   if (!readSensors()) {
-    
+    Serial.println("SENSOR READ FAILED");
+    return;
   }
+  stateMachine();
 }
