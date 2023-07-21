@@ -6,6 +6,7 @@ Data Recorded:
 - Velocity value
 - Altitude value
 - Servo angle
+- Roll rate
 - Raw sensor vals (accelX, accelY, accelZ, barometer)
 */
 
