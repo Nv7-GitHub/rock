@@ -11,12 +11,62 @@ Data Recorded:
 */
 
 #include "states.h"
+#include <Adafruit_SPIFlash.h>
+#include <SdFat.h>
+#include <SPI.h>
+
+Adafruit_FlashTransport_SPI flashTransport(SS, SPI);
+Adafruit_SPIFlash flash(&flashTransport);
+FatVolume fatfs;
+File32 dataFile;
+
+struct DataFrame {
+  unsigned long time;
+  int state;
+  float accel;
+  float vel;
+  float alt;
+  float roll;
+  int s1;
+  int s2;
+  int s3;
+  float ax;
+  float ay;
+  float az;
+  float gx;
+  float gy;
+  float gz;
+  float baro;
+};
+
+// https://github.com/adafruit/Adafruit_SPIFlash/blob/1cd95724810c3dc845d7dbb48092f87616c8a628/examples/SdFat_full_usage/SdFat_full_usage.ino
+
+void setupData() {
+  Serial.println("Initializing FS...");
+  if (!flash.begin()) {
+    Serial.println("Failed to initialize Flash");
+  }
+  if (!fatfs.begin(&flash)) {
+    Serial.println("Failed to initialize FS");
+  }
+}
 
 unsigned long startTime = 0;
 void startRecording() {
+  // Find datafile
+  int i = 0;
+  while (true) {
+    String name = String(i) + ".txt";
+    if (!fatfs.exists(name)) {
+      dataFile = fatfs.open(name, FILE_WRITE);
+    }
+  }
+  
   startTime = millis();
 }
+
 void stopRecording() {
+  dataFile.close();
   startTime = 0;
 }
 
@@ -24,8 +74,36 @@ bool recording() {
   return startTime != 0;
 }
 
+extern float accelx;
+extern float accely;
+extern float accelz;
+
+extern float gyrox;
+extern float gyroy;
+extern float gyroz;
+
+extern float baroAlt;
+
 void writeData() {
-  // TODO: Implement
+  DataFrame data;
+  data.time = millis() - startTime;
+  data.state = getState();
+  data.accel = getAccel();
+  data.vel = getVel();
+  data.alt = getAlt();
+  data.roll = getRoll();
+  data.s1 = readS1();
+  data.s2 = readS2();
+  data.s3 = readS3();
+  data.ax = accelx;
+  data.ay = accely;
+  data.az = accelz;
+  data.gx = gyrox;
+  data.gy = gyroy;
+  data.gz = gyroz;
+  data.baro = baroAlt;
+  
+  dataFile.write(&data, sizeof(DataFrame));
 }
 
 void transmitData() { 

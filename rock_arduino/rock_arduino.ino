@@ -1,6 +1,8 @@
 void setup() {
   Serial.begin(9600);
   setupSensors();
+  setupBle();
+  setupData();
 }
 
 void loop() {

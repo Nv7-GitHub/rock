@@ -21,3 +21,15 @@ void writeS2(int pos) {
 void writeS3(int pos) {
   S3.write(pos);
 }
+
+int readS1() {
+  return S1.read();
+}
+
+int readS2() {
+  return S2.read();
+}
+
+int readS3() {
+  return S3.read();
+}

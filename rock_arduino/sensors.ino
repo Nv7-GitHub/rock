@@ -59,3 +59,7 @@ float getAlt() {
 float getVel() {
   return vel;
 }
+
+float getRoll() {
+  return roll;
+}
