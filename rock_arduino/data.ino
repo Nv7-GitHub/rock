@@ -12,13 +12,10 @@ Data Recorded:
 
 #include "states.h"
 #include <Adafruit_SPIFlash.h>
-#include <SdFat.h>
 #include <SPI.h>
 
 Adafruit_FlashTransport_SPI flashTransport(SS, SPI);
 Adafruit_SPIFlash flash(&flashTransport);
-FatVolume fatfs;
-File32 dataFile;
 
 struct DataFrame {
   unsigned long time;
@@ -41,32 +38,34 @@ struct DataFrame {
 
 // https://github.com/adafruit/Adafruit_SPIFlash/blob/1cd95724810c3dc845d7dbb48092f87616c8a628/examples/SdFat_full_usage/SdFat_full_usage.ino
 
+uint32_t frameCount = 0;
+uint8_t frameCountBuffer[sizeof(frameCount)];
+uint8_t frameBuffer[sizeof(DataFrame)];
 void setupData() {
-  Serial.println("Initializing FS...");
   if (!flash.begin()) {
     Serial.println("Failed to initialize Flash");
   }
-  if (!fatfs.begin(&flash)) {
-    Serial.println("Failed to initialize FS");
-  }
+
+  // Check for data
+  flash.readBuffer(0, frameCountBuffer, sizeof(frameCountBuffer));
+  frameCount = frameBuffer[0] + (frameBuffer[1] << 8) + (frameBuffer[2] << 16) + (frameBuffer[3] << 24);
+  Serial.print(frameCount);
+  Serial.println(" frames available on flash chip");
 }
 
 unsigned long startTime = 0;
 void startRecording() {
-  // Find datafile
-  int i = 0;
-  while (true) {
-    String name = String(i) + ".txt";
-    if (!fatfs.exists(name)) {
-      dataFile = fatfs.open(name, FILE_WRITE);
-    }
+  frameCount = 0;
+  Serial.println("Erasing flash...");
+  if (!flash.eraseChip()) {
+    Serial.println("Failed to erase flash chip");
   }
-  
+  flash.waitUntilReady();
+  Serial.println("Erased flash chip");
   startTime = millis();
 }
 
 void stopRecording() {
-  dataFile.close();
   startTime = 0;
 }
 
@@ -102,8 +101,14 @@ void writeData() {
   data.gy = gyroy;
   data.gz = gyroz;
   data.baro = baroAlt;
-  
-  dataFile.write(&data, sizeof(DataFrame));
+
+
+  // Write data
+  memcpy(frameBuffer, &data, sizeof(data));
+  flash.writeBuffer((frameCount * sizeof(frameBuffer)) + sizeof(frameCountBuffer), frameBuffer, sizeof(frameBuffer));
+  frameCount++;
+  memcpy(frameCountBuffer, &frameCount, sizeof(frameCount));
+  flash.writeBuffer(0, frameCountBuffer, sizeof(frameCountBuffer));
 }
 
 void transmitData() { 
