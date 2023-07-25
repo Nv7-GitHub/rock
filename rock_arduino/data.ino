@@ -22,6 +22,7 @@ struct DataFrame {
   float gy;
   float gz;
   float baro;
+  float temp;
 };
 
 // https://github.com/adafruit/Adafruit_SPIFlash/blob/1cd95724810c3dc845d7dbb48092f87616c8a628/examples/SdFat_full_usage/SdFat_full_usage.ino
@@ -93,6 +94,7 @@ void writeData() {
   data.gy = gyroy;
   data.gz = gyroz;
   data.baro = baroAlt;
+  data.temp = getTemp();
 
 
   // Write data

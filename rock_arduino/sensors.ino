@@ -7,10 +7,14 @@ Altitude: m
 
 #include <Arduino_BMI270_BMM150.h>
 #include <Arduino_LPS22HB.h>
+#include <Arduino_HS300x.h>
 
 void setupSensors() {
   if (!IMU.begin()) {
     Serial.println("Failed to initialize IMU");
+  }
+  if (!HS300x.begin()) {
+    Serial.println("Failed to initialize temperature sensor");
   }
 }
 
@@ -18,6 +22,7 @@ void setupSensors() {
 float accelx, accely, accelz;
 float gyrox, gyroy, gyroz;
 float baroAlt;
+float temp;
 unsigned long lastRead = millis();
 unsigned long dT;
 bool readSensors() {
@@ -28,6 +33,10 @@ bool readSensors() {
     return false;
   }
 
+  // Temperature
+  temp = HS300x.readTemperature();
+
+  // Barometer
   float pressure = BARO.readPressure();
   baroAlt = 44330 * (1 - pow(pressure/101.325, 1/5.255)); // https://docs.arduino.cc/tutorials/nano-33-ble-sense/barometric-sensor
 
@@ -62,4 +71,8 @@ float getVel() {
 
 float getRoll() {
   return roll;
+}
+
+float getTemp() {
+  return temp;
 }
