@@ -1,18 +1,6 @@
-/* 
-Data Recorded:
-- Time (millis)
-- State
-- Accel value
-- Velocity value
-- Altitude value
-- Servo angle
-- Roll rate
-- Raw sensor vals (accelX, accelY, accelZ, barometer)
-*/
-
 #include "states.h"
-#include <Adafruit_SPIFlash.h>
 #include <SPI.h>
+#include <Adafruit_SPIFlash.h>
 
 Adafruit_FlashTransport_SPI flashTransport(SS, SPI);
 Adafruit_SPIFlash flash(&flashTransport);
@@ -39,7 +27,6 @@ struct DataFrame {
 // https://github.com/adafruit/Adafruit_SPIFlash/blob/1cd95724810c3dc845d7dbb48092f87616c8a628/examples/SdFat_full_usage/SdFat_full_usage.ino
 
 uint32_t frameCount = 0;
-uint8_t frameCountBuffer[sizeof(frameCount)];
 uint8_t frameBuffer[sizeof(DataFrame)];
 void setupData() {
   if (!flash.begin()) {
@@ -47,10 +34,9 @@ void setupData() {
   }
 
   // Check for data
-  flash.readBuffer(0, frameCountBuffer, sizeof(frameCountBuffer));
-  frameCount = frameBuffer[0] + (frameBuffer[1] << 8) + (frameBuffer[2] << 16) + (frameBuffer[3] << 24);
+  int frameCount = checkFrameCount();
   Serial.print(frameCount);
-  Serial.println(" frames available on flash chip");
+  Serial.println(" frames available");
 }
 
 unsigned long startTime = 0;
@@ -58,10 +44,10 @@ void startRecording() {
   frameCount = 0;
   Serial.println("Erasing flash...");
   if (!flash.eraseChip()) {
-    Serial.println("Failed to erase flash chip");
+    Serial.println("Failed to erase flash");
   }
   flash.waitUntilReady();
-  Serial.println("Erased flash chip");
+  Serial.println("Erased flash");
   startTime = millis();
 }
 
@@ -105,10 +91,33 @@ void writeData() {
 
   // Write data
   memcpy(frameBuffer, &data, sizeof(data));
-  flash.writeBuffer((frameCount * sizeof(frameBuffer)) + sizeof(frameCountBuffer), frameBuffer, sizeof(frameBuffer));
+  flash.writeBuffer(frameCount * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
   frameCount++;
-  memcpy(frameCountBuffer, &frameCount, sizeof(frameCount));
-  flash.writeBuffer(0, frameCountBuffer, sizeof(frameCountBuffer));
+}
+
+bool checkFrame(int addr) {
+  memset(frameBuffer, 255, sizeof(frameBuffer));
+  flash.readBuffer(addr * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
+  for (int i = 0; i < sizeof(frameBuffer); i++) {
+    if (frameBuffer[i] != 255) { // Frame buffer has data
+      // Use this code to read the data from the frame
+      /*// Read frame
+      DataFrame data;
+      memcpy(&data, &frameBuffer, sizeof(frameBuffer));
+      Serial.print("Frame time: ");
+      Serial.println(data.time);*/
+      return true;
+    }
+  }
+  return false;
+}
+
+int checkFrameCount() {
+  int addr = 0;
+  while (checkFrame(addr)) {
+    addr++;
+  }
+  return addr;
 }
 
 void transmitData() { 
