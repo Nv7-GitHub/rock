@@ -43,10 +43,16 @@ unsigned long startTime = 0;
 void startRecording() {
   frameCount = 0;
   Serial.println("Erasing flash...");
-  if (!flash.eraseChip()) {
+  /*if (!flash.eraseChip()) {
     Serial.println("Failed to erase flash");
   }
   flash.waitUntilReady();
+  */
+  int cnt = checkFrameCount();
+  memset(frameBuffer, 255, sizeof(frameBuffer));
+  for (uint32_t i = 0; i < cnt; i++) {
+    flash.writeBuffer(i * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
+  }
   Serial.println("Erased flash");
   startTime = millis();
 }
@@ -99,7 +105,7 @@ bool checkFrame(int addr) {
   memset(frameBuffer, 255, sizeof(frameBuffer));
   flash.readBuffer(addr * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
   for (int i = 0; i < sizeof(frameBuffer); i++) {
-    if (frameBuffer[i] != 255) { // Frame buffer has data
+    if (frameBuffer[i] != 255) {  // Frame buffer has data
       // Use this code to read the data from the frame
       /*// Read frame
       DataFrame data;
@@ -120,7 +126,7 @@ int checkFrameCount() {
   return addr;
 }
 
-void transmitData() { 
+void transmitData() {
   // TODO: Transmit data, probably something like https://github.com/petewarden/ble_file_transfer (see below)
   /* 
   When the client has a file to send, it first writes the file length and CRC32 checksum to characteristics on the device.
