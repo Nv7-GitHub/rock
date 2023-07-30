@@ -21,6 +21,10 @@ class _GroundPageState extends State<GroundPage> {
   double alt = 0;
   double vel = 0;
 
+  int s1 = 0;
+  int s2 = 0;
+  int s3 = 0;
+
   // Writable
   late QualifiedCharacteristic _servoCharacteristic;
 
@@ -48,6 +52,48 @@ class _GroundPageState extends State<GroundPage> {
     });
   }
 
+  int _lastServoWrite = DateTime.now().millisecondsSinceEpoch;
+  void writeServoPositions() {
+    int now = DateTime.now().millisecondsSinceEpoch;
+    if (now - _lastServoWrite < 250) {
+      return;
+    }
+    _lastServoWrite = now;
+
+    final model = context.read<StateModel>();
+    final bytes = Uint8List(12);
+    final byteData = ByteData.sublistView(bytes);
+
+    // Set 3 ints
+    byteData.setInt32(0, s1);
+    byteData.setInt32(4, s2);
+    byteData.setInt32(8, s3);
+
+    model.ble.writeCharacteristicWithResponse(_servoCharacteristic,
+        value: bytes.toList());
+  }
+
+  void s1change(double v) {
+    setState(() {
+      s1 = v.toInt();
+    });
+    writeServoPositions();
+  }
+
+  void s2change(double v) {
+    setState(() {
+      s2 = v.toInt();
+    });
+    writeServoPositions();
+  }
+
+  void s3change(double v) {
+    setState(() {
+      s3 = v.toInt();
+    });
+    writeServoPositions();
+  }
+
   void init() async {
     final model = context.read<StateModel>();
     _accelCharacteristic = QualifiedCharacteristic(
@@ -60,6 +106,10 @@ class _GroundPageState extends State<GroundPage> {
         deviceId: model.deviceId!);
     _velCharacteristic = QualifiedCharacteristic(
         characteristicId: deviceUuid("1002"),
+        serviceId: deviceUuid("0000"),
+        deviceId: model.deviceId!);
+    _servoCharacteristic = QualifiedCharacteristic(
+        characteristicId: deviceUuid("2000"),
         serviceId: deviceUuid("0000"),
         deviceId: model.deviceId!);
 
@@ -111,6 +161,36 @@ class _GroundPageState extends State<GroundPage> {
         ListTile(
           title: const Text("Velocity"),
           subtitle: Text(vel.toString()),
+        ),
+        ListTile(
+          title: const Text("Servo 1 Position"),
+          subtitle: Slider(
+            onChanged: s1change,
+            max: 180,
+            divisions: 180,
+            value: s1.toDouble(),
+            label: s1.toString(),
+          ),
+        ),
+        ListTile(
+          title: const Text("Servo 2 Position"),
+          subtitle: Slider(
+            onChanged: s2change,
+            max: 180,
+            divisions: 180,
+            value: s2.toDouble(),
+            label: s2.toString(),
+          ),
+        ),
+        ListTile(
+          title: const Text("Servo 3 Position"),
+          subtitle: Slider(
+            onChanged: s3change,
+            max: 180,
+            divisions: 180,
+            value: s3.toDouble(),
+            label: s3.toString(),
+          ),
         ),
         FilledButton(
           onPressed: armRocket,
