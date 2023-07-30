@@ -3,15 +3,17 @@
 #define BLE_UUID(ind) ("e7cce444-" ind "-4260-81de-7a42c1378923")
 
 BLEService service(BLE_UUID("0000"));
-BLEByteCharacteristic stateCharacteristic(BLE_UUID("0001"), BLERead | BLENotify);
-BLEFloatCharacteristic accelCharacteristic(BLE_UUID("1000"), BLERead);
-BLEFloatCharacteristic altCharacteristic(BLE_UUID("1001"), BLERead);
-BLEFloatCharacteristic velCharacteristic(BLE_UUID("1002"), BLERead);
-BLECharacteristic servoPositions(BLE_UUID("2000"), BLENotify, sizeof(int) * 3); // 3 x int
+BLEByteCharacteristic stateCharacteristic(BLE_UUID("0001"), BLERead | BLENotify | BLEWrite);
+BLEFloatCharacteristic accelCharacteristic(BLE_UUID("1000"), BLERead | BLENotify);
+BLEFloatCharacteristic altCharacteristic(BLE_UUID("1001"), BLERead | BLENotify);
+BLEFloatCharacteristic velCharacteristic(BLE_UUID("1002"), BLERead | BLENotify);
+BLECharacteristic servoPositions(BLE_UUID("2000"), BLENotify | BLEWrite, sizeof(int) * 3); // 3 x int
 
 void setupBle() {
   if (!BLE.begin()) {
+    #ifdef DEBUG
     Serial.println("Failed to initialize BLE");
+    #endif
   }
   BLE.setLocalName("ROCK");
   BLE.setDeviceName("ROCK");

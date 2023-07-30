@@ -27,10 +27,10 @@ class App extends StatelessWidget {
       ),
       routes: {
         '/': (context) => const ConnectPage(),
-        '/none': (context) => const ConnectPage(),
-        '/ground': (context) => const GroundPage(),
-        '/ready': (context) => const ReadyPage(),
-        '/landed': (context) => const LandedPage(),
+        'none': (context) => const ConnectPage(),
+        'ground': (context) => const GroundPage(),
+        'ready': (context) => const ReadyPage(),
+        'landed': (context) => const LandedPage(),
       },
     );
   }

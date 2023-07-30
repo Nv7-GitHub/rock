@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:rock/state.dart';
 
@@ -14,28 +17,34 @@ class _ConnectPageState extends State<ConnectPage> {
   final serviceUuid = deviceUuid("0000");
 
   void init() async {
+    await Permission.bluetoothScan.request();
+    if (Platform.isAndroid) {
+      await Permission.locationWhenInUse.request();
+    }
+
     // Scan
     final model = context.read<StateModel>();
+
     final scanResult = await model.ble.scanForDevices(
       withServices: [serviceUuid],
       scanMode: ScanMode.lowLatency,
-      requireLocationServicesEnabled: false,
+      requireLocationServicesEnabled: true,
     ).first;
 
     // Connect
     model.updateBleState(BLEState.connecting);
     model.setDeviceId(scanResult.id);
 
-    await model.ble.connectToDevice(
+    model.ble.connectToDevice(
       id: scanResult.id,
       servicesWithCharacteristicsToDiscover: {
-        serviceUuid: [],
+        serviceUuid: [serviceUuid],
       },
     ).listen((event) {
       if (event.connectionState == DeviceConnectionState.connected) {
         context.read<StateModel>().updateBleState(BLEState.connected);
       }
-    }).asFuture();
+    });
   }
 
   @override

@@ -11,10 +11,19 @@ Altitude: m
 
 void setupSensors() {
   if (!IMU.begin()) {
+    #ifdef DEBUG
     Serial.println("Failed to initialize IMU");
+    #endif
   }
   if (!HS300x.begin()) {
+    #ifdef DEBUG
     Serial.println("Failed to initialize temperature sensor");
+    #endif
+  }
+  if (!BARO.begin()) {
+    #ifdef DEBUG
+    Serial.println("Failed to initialize pressure sensor");
+    #endif
   }
 }
 
@@ -27,9 +36,15 @@ unsigned long lastRead = millis();
 unsigned long dT;
 bool readSensors() {
   if (!IMU.readAcceleration(accelx, accely, accelz)) {
+    #ifdef DEBUG
+    Serial.println("Failed to read IMU");
+    #endif
     return false;
   }
   if (!IMU.readGyroscope(gyrox, gyroy, gyroz)) {
+    #ifdef DEBUG
+    Serial.println("Failed to read IMU");
+    #endif
     return false;
   }
 
@@ -44,6 +59,8 @@ bool readSensors() {
   unsigned long currentTime = millis();
   dT = currentTime - lastRead;
   lastRead = currentTime;
+
+  return true;
 }
 
 float accel; // Acceleration going up

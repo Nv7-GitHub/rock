@@ -6,14 +6,26 @@ const int writeInterval = 250;
 bool canWrite() {
   unsigned long currentTime = millis();
   bool ok = (currentTime - lastWrite) > writeInterval;
-  lastWrite = currentTime;
+  if (ok) {
+    lastWrite = currentTime;
+  }
   return ok;
 }
 
 void groundState() {
+  if (!BLE.connected()) {
+    #ifdef DEBUG
+    Serial.println("BLE disconnected");
+    #endif
+    return;
+  }
+
   bleReadState(); // Wait for READY command
   bleServoPositionsRead();
   if (canWrite()) {
+    #ifdef DEBUG
+    Serial.println("BLUETOOTH WRITE");
+    #endif
     bleWriteState();
     bleWriteSensors();
   }
@@ -22,6 +34,7 @@ void groundState() {
 const int LAUNCH_THRESHOLD = 1;
 
 void readyState() {
+  Serial.println("READY STATE");
   if (BLE.connected()) {
     BLE.disconnect();
   }
@@ -33,6 +46,11 @@ void readyState() {
 
   if (getAccel() > LAUNCH_THRESHOLD) {
     setState(STATE_ASCENT);
+  }
+
+  // DEBUG
+  if (flightTime() > 250) {
+    landedTransition();
   }
 }
 

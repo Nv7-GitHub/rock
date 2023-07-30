@@ -1,9 +1,14 @@
+#define DEBUG 1
+
 void setup() {
   Serial.begin(9600);
-  // TODO: Delete this when running flight comp by itself
+
+  #ifdef DEBUG
   while (!Serial) {
     delay(1);
   }
+  #endif
+
   setupSensors();
   setupBle();
   setupData();
@@ -11,7 +16,6 @@ void setup() {
 
 void loop() {
   if (!readSensors()) {
-    Serial.println("SENSOR READ FAILED");
     return;
   }
   stateMachine();

@@ -31,7 +31,9 @@ uint32_t frameCount = 0;
 uint8_t frameBuffer[sizeof(DataFrame)];
 void setupData() {
   if (!flash.begin()) {
+    #ifdef DEBUG
     Serial.println("Failed to initialize Flash");
+    #endif
   }
 
   // Check for data
@@ -43,7 +45,9 @@ void setupData() {
 unsigned long startTime = 0;
 void startRecording() {
   frameCount = 0;
+  #ifdef DEBUG
   Serial.println("Erasing flash...");
+  #endif
   /*if (!flash.eraseChip()) {
     Serial.println("Failed to erase flash");
   }
@@ -54,7 +58,6 @@ void startRecording() {
   for (uint32_t i = 0; i < cnt; i++) {
     flash.writeBuffer(i * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
   }
-  Serial.println("Erased flash");
   startTime = millis();
 }
 
@@ -76,9 +79,13 @@ extern float gyroz;
 
 extern float baroAlt;
 
+unsigned long flightTime() {
+  return millis() - startTime;
+}
+
 void writeData() {
   DataFrame data;
-  data.time = millis() - startTime;
+  data.time = flightTime();
   data.state = getState();
   data.accel = getAccel();
   data.vel = getVel();

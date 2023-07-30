@@ -12,6 +12,7 @@ Uuid deviceUuid(String ind) {
 }
 
 enum DeviceState {
+  devicenone,
   ground,
   ready,
   ascent,
@@ -31,15 +32,37 @@ class StateModel extends ChangeNotifier {
   late QualifiedCharacteristic _stateCharacteristic;
   DeviceState deviceState = DeviceState.none;
 
+  void bleStateListener(List<int> data) {
+    print("GOT DATA");
+    bool changed = deviceState != DeviceState.values[data[0]];
+    deviceState = DeviceState.values[data[0]];
+    if (changed) {
+      notifyListeners();
+    }
+  }
+
   void updateBleState(BLEState newState) {
+    if (newState == BLEState.connected) {
+      ble.readCharacteristic(_stateCharacteristic).then(bleStateListener);
+      ble
+          .subscribeToCharacteristic(_stateCharacteristic)
+          .listen(bleStateListener);
+    }
     bleState = newState;
     notifyListeners();
   }
 
   void checkRoute(BuildContext context, String route) {
-    if (route != deviceState.name) {
-      Navigator.popAndPushNamed(context, deviceState.name);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (route != deviceState.name) {
+        print("OLD ROUTE: $route (new: ${deviceState.name})");
+        if (Navigator.canPop(context)) {
+          Navigator.pushNamed(context, deviceState.name);
+        } else {
+          Navigator.popAndPushNamed(context, deviceState.name);
+        }
+      }
+    });
   }
 
   void updateDeviceState(DeviceState state) {
@@ -55,16 +78,11 @@ class StateModel extends ChangeNotifier {
   void setDeviceId(String id) {
     deviceId = id;
 
-    // Listen to state
+    // Get ready to listen to state
     _stateCharacteristic = QualifiedCharacteristic(
         characteristicId: deviceUuid("0001"),
         serviceId: deviceUuid("0000"),
         deviceId: deviceId!);
-    ble.subscribeToCharacteristic(_stateCharacteristic).listen((data) {
-      deviceState = DeviceState.values[data[0]];
-      notifyListeners();
-    });
-
     notifyListeners();
   }
 }
