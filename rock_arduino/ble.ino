@@ -7,7 +7,7 @@ BLEByteCharacteristic stateCharacteristic(BLE_UUID("0001"), BLERead | BLENotify 
 BLEFloatCharacteristic accelCharacteristic(BLE_UUID("1000"), BLERead | BLENotify);
 BLEFloatCharacteristic altCharacteristic(BLE_UUID("1001"), BLERead | BLENotify);
 BLEFloatCharacteristic velCharacteristic(BLE_UUID("1002"), BLERead | BLENotify);
-BLECharacteristic servoPositions(BLE_UUID("2000"), BLENotify | BLEWrite, sizeof(int) * 3); // 3 x int
+BLECharacteristic servoPositions(BLE_UUID("2000"), BLENotify | BLEWrite | BLERead, sizeof(int) * 3); // 3 x int
 
 void setupBle() {
   if (!BLE.begin()) {
@@ -48,6 +48,10 @@ void bleWriteSensors() {
   accelCharacteristic.writeValue(getAccel());
   altCharacteristic.writeValue(getAlt());
   velCharacteristic.writeValue(getVel());
+
+  // Servo positions
+  int servoPos[3] = {readS1(), readS2(), readS3()};
+  servoPositions.writeValue(servoPos, sizeof(servoPos));
 }
 
 void bleServoPositionsRead() {

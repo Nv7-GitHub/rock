@@ -8,9 +8,14 @@ void setupServos() {
   S1.attach(2);
   S2.attach(3);
   S3.attach(4);
+  S1.write(90);
+  S2.write(90);
+  S3.write(90);
 }
 
 void writeS1(int pos) {
+  Serial.print("S1 pos: ");
+  Serial.println(pos);
   S1.write(pos);
 }
 
@@ -23,6 +28,8 @@ void writeS3(int pos) {
 }
 
 int readS1() {
+  Serial.print("S1 pos read: ");
+  Serial.println(S1.read());
   return S1.read();
 }
 

@@ -31,7 +31,7 @@ class _GroundPageState extends State<GroundPage> {
   double floatFromBytes(List<int> data) {
     final bytes = Uint8List.fromList(data);
     final byteData = ByteData.sublistView(bytes);
-    return byteData.getFloat32(0);
+    return byteData.getFloat32(0, Endian.little);
   }
 
   void accelListener(List<int> data) {
@@ -52,6 +52,17 @@ class _GroundPageState extends State<GroundPage> {
     });
   }
 
+  void servoPositionsListener(List<int> data) {
+    print("SERVO DATA: $data");
+    final bytes = Uint8List.fromList(data);
+    final byteData = ByteData.sublistView(bytes);
+    setState(() {
+      s1 = byteData.getInt32(0, Endian.little);
+      s2 = byteData.getInt32(4, Endian.little);
+      s3 = byteData.getInt32(8, Endian.little);
+    });
+  }
+
   int _lastServoWrite = DateTime.now().millisecondsSinceEpoch;
   void writeServoPositions() {
     int now = DateTime.now().millisecondsSinceEpoch;
@@ -65,9 +76,9 @@ class _GroundPageState extends State<GroundPage> {
     final byteData = ByteData.sublistView(bytes);
 
     // Set 3 ints
-    byteData.setInt32(0, s1);
-    byteData.setInt32(4, s2);
-    byteData.setInt32(8, s3);
+    byteData.setInt32(0, s1, Endian.little);
+    byteData.setInt32(4, s2, Endian.little);
+    byteData.setInt32(8, s3, Endian.little);
 
     model.ble.writeCharacteristicWithResponse(_servoCharacteristic,
         value: bytes.toList());
@@ -117,6 +128,9 @@ class _GroundPageState extends State<GroundPage> {
     model.ble.readCharacteristic(_accelCharacteristic).then(accelListener);
     model.ble.readCharacteristic(_altCharacteristic).then(altListener);
     model.ble.readCharacteristic(_velCharacteristic).then(velListener);
+    model.ble
+        .readCharacteristic(_servoCharacteristic)
+        .then(servoPositionsListener);
 
     // Subscribe
     model.ble
@@ -124,6 +138,7 @@ class _GroundPageState extends State<GroundPage> {
         .listen(accelListener);
     model.ble.subscribeToCharacteristic(_altCharacteristic).listen(altListener);
     model.ble.subscribeToCharacteristic(_velCharacteristic).listen(velListener);
+    // Can subscribe to servo pos but makes experience weird
   }
 
   @override
