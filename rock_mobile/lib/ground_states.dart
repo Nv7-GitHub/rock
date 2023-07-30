@@ -67,6 +67,9 @@ class _GroundPageState extends State<GroundPage> {
   void writeServoPositions() {
     int now = DateTime.now().millisecondsSinceEpoch;
     if (now - _lastServoWrite < 250) {
+      Future.delayed(const Duration(milliseconds: 250)).then((v) {
+        writeServoPositions();
+      });
       return;
     }
     _lastServoWrite = now;

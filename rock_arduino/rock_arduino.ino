@@ -1,6 +1,9 @@
 #define DEBUG 1
 
 void setup() {
+  setupLed();
+  ledWrite(true, false, false, true);
+
   Serial.begin(9600);
 
   #ifdef DEBUG
@@ -12,10 +15,14 @@ void setup() {
   setupSensors();
   setupBle();
   setupData();
+  setupServos();
+
+  ledWrite(true, false, true, true);
 }
 
 void loop() {
   if (!readSensors()) {
+    ledWrite(true, false, false, false); // Red
     return;
   }
   predictPos();

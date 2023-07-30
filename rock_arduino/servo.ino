@@ -3,40 +3,44 @@
 Servo S1;
 Servo S2;
 Servo S3;
+int S1pos;
+int S2pos;
+int S3pos;
 
 void setupServos() {
   S1.attach(2);
   S2.attach(3);
   S3.attach(4);
-  S1.write(90);
-  S2.write(90);
-  S3.write(90);
+  writeS1(90);
+  writeS2(90);
+  writeS3(90);
 }
 
 void writeS1(int pos) {
-  Serial.print("S1 pos: ");
+  S1pos = pos;
+  Serial.print("S1 write: ");
   Serial.println(pos);
   S1.write(pos);
 }
 
 void writeS2(int pos) {
+  S2pos = pos;
   S2.write(pos);
 }
 
 void writeS3(int pos) {
+  S3pos = pos;
   S3.write(pos);
 }
 
 int readS1() {
-  Serial.print("S1 pos read: ");
-  Serial.println(S1.read());
-  return S1.read();
+  return S1pos;
 }
 
 int readS2() {
-  return S2.read();
+  return S2pos;
 }
 
 int readS3() {
-  return S3.read();
+  return S3pos;
 }
