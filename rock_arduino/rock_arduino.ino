@@ -18,5 +18,6 @@ void loop() {
   if (!readSensors()) {
     return;
   }
+  predictPos();
   stateMachine();
 }
