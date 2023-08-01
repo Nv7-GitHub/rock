@@ -8,6 +8,7 @@ Altitude: m
 #include <Arduino_BMI270_BMM150.h>
 #include <Arduino_LPS22HB.h>
 #include <Arduino_HS300x.h>
+#include <SimpleKalmanFilter.h>
 
 void setupSensors() {
   if (!IMU.begin()) {
@@ -33,7 +34,7 @@ float gyrox, gyroy, gyroz;
 float baroAlt;
 float temp;
 unsigned long lastRead = millis();
-unsigned long dT;
+double dT;
 bool readSensors() {
   if (!IMU.readAcceleration(accelx, accely, accelz)) {
     #ifdef DEBUG
@@ -57,21 +58,28 @@ bool readSensors() {
 
   // Calc dT
   unsigned long currentTime = millis();
-  dT = currentTime - lastRead;
+  unsigned long deltaT = currentTime - lastRead;
+  dT = ((double)deltaT) / 1000.0;
   lastRead = currentTime;
 
   return true;
 }
+
+SimpleKalmanFilter altKf = SimpleKalmanFilter(0.05, 0.05, 0.01);
+SimpleKalmanFilter velKf = SimpleKalmanFilter(0.05, 0.05, 0.01);
+
+float lastAlt;
 
 float accel; // Acceleration going up
 float alt;
 float vel;
 float roll;
 void predictPos() {
-  vel = (baroAlt - alt) / (dT / 1000); // TODO: Use kalman filter to figure this out
-  accel = accely; // TODO: Account for the angle of the rocket in this
-  alt = baroAlt; // TODO: Use a 2d kalman filter to combine accel & baroAlt measurements
-  roll += gyrox / (dT / 1000); // TODO: use kalman filter to figure this out
+  accel = accelx + 1; // Account for grav
+  alt = altKf.updateEstimate((double)baroAlt);
+  vel = velKf.updateEstimate((double)(alt - lastAlt) / dT);
+  lastAlt = alt;
+  roll = gyrox;
 }
 
 float getAccel() {

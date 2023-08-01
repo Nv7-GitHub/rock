@@ -1,36 +1,11 @@
-#define RED 22     
-#define BLUE 24     
-#define GREEN 23
-
 void setupLed() {
-  pinMode(RED, OUTPUT);
-  pinMode(BLUE, OUTPUT);
-  pinMode(GREEN, OUTPUT);
-  pinMode(PIN_LED, OUTPUT);
+  pinMode(LEDR, OUTPUT);
+  pinMode(LEDB, OUTPUT);
+  pinMode(LEDG, OUTPUT);
 }
 
-void ledWrite(bool red, bool blue, bool green, bool builtin) {
-  if (red) {
-    digitalWrite(RED, LOW);
-  } else {
-    digitalWrite(RED, HIGH);
-  }
-
-  if (blue) {
-    digitalWrite(BLUE, HIGH);
-  } else {
-    digitalWrite(BLUE, LOW);
-  }
-
-  if (green) {
-    digitalWrite(GREEN, HIGH);
-  } else {
-    digitalWrite(GREEN, LOW);
-  }
-
-  if (builtin) {
-    digitalWrite(PIN_LED, HIGH);
-  } else {
-    digitalWrite(PIN_LED, LOW);
-  }
+void ledWrite(int red, int green, int blue) {
+  analogWrite(LEDR, 255-red);
+  analogWrite(LEDG, 255-green);
+  analogWrite(LEDB, 255-blue);
 }

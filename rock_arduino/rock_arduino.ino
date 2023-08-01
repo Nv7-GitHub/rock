@@ -1,8 +1,8 @@
-#define DEBUG 1
+//#define DEBUG 1
 
 void setup() {
   setupLed();
-  ledWrite(true, false, false, true);
+  ledWrite(255, 255, 255);
 
   Serial.begin(9600);
 
@@ -10,19 +10,18 @@ void setup() {
   while (!Serial) {
     delay(1);
   }
+  Serial.println("CONNECTED");
   #endif
 
   setupSensors();
   setupBle();
   setupData();
   setupServos();
-
-  ledWrite(true, false, true, true);
 }
 
 void loop() {
   if (!readSensors()) {
-    ledWrite(true, false, false, false); // Red
+    ledWrite(0, 0, 0);
     return;
   }
   predictPos();

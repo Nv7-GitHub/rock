@@ -18,8 +18,6 @@ void setupServos() {
 
 void writeS1(int pos) {
   S1pos = pos;
-  Serial.print("S1 write: ");
-  Serial.println(pos);
   S1.write(pos);
 }
 

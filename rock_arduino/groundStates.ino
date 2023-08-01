@@ -14,7 +14,7 @@ bool canWrite() {
 
 void groundState() {
   if (!BLE.connected()) {
-    ledWrite(false, false, true, false);
+    ledWrite(255, 0, 0);
     #ifdef DEBUG
     Serial.println("BLE disconnected");
     #endif
@@ -31,13 +31,17 @@ void groundState() {
     bleWriteSensors();
   }
 
-  ledWrite(false, true, false, false);
+  ledWrite(255, 50, 0);
 }
 
 const int LAUNCH_THRESHOLD = 1;
 
 void readyState() {
-  ledWrite(false, true, false, false);
+  #ifdef DEBUG
+  Serial.println("READY");
+  #endif
+
+  ledWrite(255, 255, 0);
   if (BLE.connected()) {
     BLE.disconnect();
   }
@@ -50,11 +54,6 @@ void readyState() {
   if (getAccel() > LAUNCH_THRESHOLD) {
     setState(STATE_ASCENT);
   }
-
-  // DEBUG
-  if (flightTime() > 250) {
-    landedTransition();
-  }
 }
 
 void landedTransition() {
@@ -64,10 +63,15 @@ void landedTransition() {
 }
 
 void landedState() {
+  #ifdef DEBUG
+  Serial.println("LANDED");
+  #endif
+
   if (!BLE.connected()) {
-    ledWrite(false, false, true, true);
+    ledWrite(150, 0, 255);
+    writeData();
     return;
   }
-  ledWrite(false, true, false, true);
+  ledWrite(255, 0, 190);
   transmitData();
 }

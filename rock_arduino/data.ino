@@ -31,9 +31,7 @@ uint32_t frameCount = 0;
 uint8_t frameBuffer[sizeof(DataFrame)];
 void setupData() {
   if (!flash.begin()) {
-    #ifdef DEBUG
     Serial.println("Failed to initialize Flash");
-    #endif
   }
 
   // Check for data
