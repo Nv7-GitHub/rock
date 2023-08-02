@@ -60,14 +60,14 @@ void landedTransition() {
   setState(STATE_LANDED);
   stopRecording();
   BLE.advertise();
+  startTransmission();
 }
 
 void landedState() {
-  #ifdef DEBUG
-  Serial.println("LANDED");
-  #endif
-
   if (!BLE.connected()) {
+    #ifdef DEBUG
+    Serial.println("LANDED, BLE NOT CONNECTED");
+    #endif
     ledWrite(150, 0, 255);
     writeData();
     return;

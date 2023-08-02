@@ -8,6 +8,9 @@ BLEFloatCharacteristic accelCharacteristic(BLE_UUID("1000"), BLERead | BLENotify
 BLEFloatCharacteristic altCharacteristic(BLE_UUID("1001"), BLERead | BLENotify);
 BLEFloatCharacteristic velCharacteristic(BLE_UUID("1002"), BLERead | BLENotify);
 BLECharacteristic servoPositions(BLE_UUID("2000"), BLENotify | BLEWrite | BLERead, sizeof(int) * 3); // 3 x int
+BLEIntCharacteristic readFrames(BLE_UUID("3000"), BLENotify | BLEWrite | BLERead);
+extern const int FRAME_SIZE;
+BLECharacteristic frame(BLE_UUID("3001"), BLENotify | BLERead, FRAME_SIZE);
 
 void setupBle() {
   if (!BLE.begin()) {

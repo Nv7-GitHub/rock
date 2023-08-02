@@ -5,6 +5,7 @@
 Adafruit_FlashTransport_SPI flashTransport(SS, SPI);
 Adafruit_SPIFlash flash(&flashTransport);
 
+#pragma pack
 struct DataFrame {
   unsigned long time;
   int state;
@@ -24,6 +25,7 @@ struct DataFrame {
   float baro;
   float temp;
 };
+const int FRAME_SIZE = sizeof(DataFrame);
 
 // https://github.com/adafruit/Adafruit_SPIFlash/blob/1cd95724810c3dc845d7dbb48092f87616c8a628/examples/SdFat_full_usage/SdFat_full_usage.ino
 
@@ -133,15 +135,72 @@ int checkFrameCount() {
   return addr;
 }
 
+/* Transmission procedure
+1. Write frame count to readFrames characteristic
+2. Wait for phone to respond with 1, increase transmittedFrames
+3. Loop:
+  a. Transmit frame
+  b. Wait for phone counter to go up
+*/
+unsigned int transmittedFrames = 0;
+bool waiting = false;
+int transmissionFrameTarget = 0;
+void startTransmission() {
+  transmissionFrameTarget = checkFrameCount();
+  transmittedFrames = 0;
+  waiting = false;
+}
 void transmitData() {
-  // TODO: Transmit data, probably something like https://github.com/petewarden/ble_file_transfer (see below)
-  /* 
-  When the client has a file to send, it first writes the file length and CRC32 checksum to characteristics on the device.
-  Then it starts a file transfer by writing an integer of 1 to the command characteristic.
-  The device then expects the client to repeatedly write sequential blocks of 128 bytes or less to the file block characteristic, waiting until one has been acknowledged before sending the next.
-  The client assembles these blocks into a contiguous array of data.
-  Once the expected number of bytes has been received, the device confirms the checksum matches the one supplied by the client, and then calls the onBLEFileReceived function with the received data.
-  The client is notified that the file transfer succeeded through a notification of the transfer code as 0.
-  */
-  setState(STATE_GROUND);
+  // Check if done
+  if (transmittedFrames - 1 == transmissionFrameTarget) {
+    #if DEBUG
+    Serial.println("DONE TRANSMITTING");
+    #endif
+    setState(STATE_GROUND);
+  }
+
+  // Transmit frame count
+  if (transmittedFrames = 0) {
+    if (!waiting) {
+      readFrames.writeValue(transmissionFrameTarget);
+      waiting = true;
+
+      #if DEBUG
+      Serial.println("WRITE FRAME COUNT");
+      #endif
+    } else {
+      #if DEBUG
+      Serial.println("FRAME COUNT WAIT");
+      #endif
+      if (readFrames.written() && readFrames.value() == 1) {
+        waiting = false;
+        transmittedFrames++;
+      }
+    }
+  }
+
+  // Transmit frame
+  if (transmittedFrames > 0) {
+    if (!waiting) { // Write frame
+      // Read frame
+      memset(frameBuffer, 255, sizeof(frameBuffer));
+      flash.readBuffer((transmittedFrames-1) * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
+
+      // Write to BLE
+      frame.writeValue(frameBuffer, sizeof(frameBuffer));
+      waiting = true;
+
+      #if DEBUG
+      Serial.println("WRITE FRAME");
+      #endif
+    } else { // Wait for phone
+      #if DEBUG
+      Serial.println("FRAME WAIT");
+      #endif
+      if (readFrames.written() && readFrames.value() == transmittedFrames + 1) {
+        transmittedFrames++;
+        waiting = false;
+      } 
+    }
+  }
 }
