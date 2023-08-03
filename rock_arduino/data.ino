@@ -40,11 +40,15 @@ void setupData() {
   int frameCount = checkFrameCount();
   Serial.print(frameCount);
   Serial.println(" frames available");
+
+  // Transmit data if frames available
+  if (frameCount > 0) {
+    startTransmission();
+    setState(STATE_LANDED);
+  }
 }
 
-unsigned long startTime = 0;
-void startRecording() {
-  frameCount = 0;
+void eraseFlash() {
   #ifdef DEBUG
   Serial.println("Erasing flash...");
   #endif
@@ -58,6 +62,11 @@ void startRecording() {
   for (uint32_t i = 0; i < cnt; i++) {
     flash.writeBuffer(i * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
   }
+}
+
+unsigned long startTime = 0;
+void startRecording() {
+  frameCount = 0;
   startTime = millis();
 }
 
@@ -147,12 +156,17 @@ bool waiting = false;
 int transmissionFrameTarget = 0;
 void startTransmission() {
   transmissionFrameTarget = checkFrameCount();
+  #if DEBUG
+  Serial.print("FRAME COUNT TRANSMIT: ");
+  Serial.println(transmissionFrameTarget);
+  #endif
   transmittedFrames = 0;
   waiting = false;
 }
 void transmitData() {
   // Check if done
   if (transmittedFrames - 1 == transmissionFrameTarget) {
+    eraseFlash();
     #if DEBUG
     Serial.println("DONE TRANSMITTING");
     #endif
@@ -160,7 +174,7 @@ void transmitData() {
   }
 
   // Transmit frame count
-  if (transmittedFrames = 0) {
+  if (transmittedFrames == 0) {
     if (!waiting) {
       readFrames.writeValue(transmissionFrameTarget);
       waiting = true;
@@ -171,6 +185,7 @@ void transmitData() {
     } else {
       #if DEBUG
       Serial.println("FRAME COUNT WAIT");
+      Serial.println(readFrames.value());
       #endif
       if (readFrames.written() && readFrames.value() == 1) {
         waiting = false;

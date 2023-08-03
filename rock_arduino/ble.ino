@@ -27,11 +27,14 @@ void setupBle() {
   service.addCharacteristic(altCharacteristic);
   service.addCharacteristic(velCharacteristic);
   service.addCharacteristic(servoPositions);
+  service.addCharacteristic(readFrames);
+  service.addCharacteristic(frame);
 
   stateCharacteristic.writeValue(getState());
   accelCharacteristic.writeValue(0);
   altCharacteristic.writeValue(0);
   velCharacteristic.writeValue(0);
+  readFrames.writeValue(0);
 
   BLE.addService(service);
   BLE.advertise();

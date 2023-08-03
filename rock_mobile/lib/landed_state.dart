@@ -62,25 +62,30 @@ class _LandedPageState extends State<LandedPage> {
   List<DataFrame> frames = [];
 
   void readFrameListener(List<int> data) {
-    print("RECEIVED READ FRAME");
+    print("RECEIVED READ FRAME: $data");
     if (receivedFrames == 0) {
       // Receive frame count
       final bytes = Uint8List.fromList(data);
       final byteData = ByteData.sublistView(bytes);
+      int frameCountRaw = byteData.getInt32(0, Endian.little);
+      if (frameCountRaw == 0) {
+        return;
+      }
       setState(() {
         receivedFrames = 1;
-        frameCount = byteData.getInt32(0, Endian.little);
+        frameCount = frameCountRaw;
       });
 
       // Acknowledge frame count
       final model = context.read<StateModel>();
+      print("WRITE TO BLE, count: $frameCountRaw");
       model.ble.writeCharacteristicWithResponse(_readFrameCharacteristic,
           value: [0, 0, 0, 1]);
     }
   }
 
   void frameListener(List<int> data) {
-    print("RECEIVED FRAME");
+    print("RECEIVED FRAME: $data");
     final frame = DataFrame.fromBuffer(data); // Parse frame
 
     // Acknowledge frame
@@ -95,17 +100,22 @@ class _LandedPageState extends State<LandedPage> {
     setState(() {
       frames.add(frame);
       receivedFrames++;
+
+      if (receivedFrames - 1 == frameCount) {
+        // TODO: Save frames
+        print("RECEIVED FRAMES: $frames");
+      }
     });
   }
 
   void init() async {
     final model = context.read<StateModel>();
     _readFrameCharacteristic = QualifiedCharacteristic(
-        characteristicId: deviceUuid("1000"),
+        characteristicId: deviceUuid("3000"),
         serviceId: deviceUuid("0000"),
         deviceId: model.deviceId!);
     _frameCharacteristic = QualifiedCharacteristic(
-        characteristicId: deviceUuid("1001"),
+        characteristicId: deviceUuid("3001"),
         serviceId: deviceUuid("0000"),
         deviceId: model.deviceId!);
 

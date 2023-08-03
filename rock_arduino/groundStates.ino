@@ -72,6 +72,13 @@ void landedState() {
     writeData();
     return;
   }
+  if (canWrite()) {
+    #ifdef DEBUG
+    Serial.println("BLUETOOTH WRITE");
+    #endif
+    bleWriteState();
+  }
+
   ledWrite(255, 0, 190);
   transmitData();
 }

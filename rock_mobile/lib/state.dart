@@ -33,7 +33,7 @@ class StateModel extends ChangeNotifier {
   DeviceState deviceState = DeviceState.none;
 
   void bleStateListener(List<int> data) {
-    print("GOT DATA");
+    //print("GOT STATE DATA");
     bool changed = deviceState != DeviceState.values[data[0]];
     deviceState = DeviceState.values[data[0]];
     if (changed) {
