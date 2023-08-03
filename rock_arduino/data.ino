@@ -160,11 +160,12 @@ void transfer() {
   
   // Begin transfer
   Serial.println("TRANSFER BEGIN");
+  Serial.write(1);
   serialWait();
 
   // Write frame count
   int frameCount = checkFrameCount();
-  Serial.write(&frameCount, sizeof(frameCount));
+  Serial.write((char*)(&frameCount), sizeof(frameCount));
   serialWait();
 
   // Transfer frames
