@@ -1,11 +1,9 @@
 #pragma once
 
 enum STATE {
-  STATE_NONE = 0,    // No state
-  STATE_GROUND = 1,  // You turn on the rocket, see data on app
-  STATE_READY = 2,   // App arms rocket & disconnects
-  STATE_ASCENT = 3,  // Start flying up
-  STATE_APOGEE = 4,  // Apogee detected
-  STATE_DESCENT = 5, // Going down
-  STATE_LANDED = 6,  // On the ground, BLE broadcasting file
+  STATE_NONE = 0,    // No state, white
+  STATE_GROUND = 1,  // Rocket on ground, ready for launch, red
+  STATE_ASCENT = 2,  // Start flying up, green
+  STATE_DESCENT = 3, // Going down, blue
+  STATE_TRANSFER = 4, // Transferring data, state machine not running, cyan
 };

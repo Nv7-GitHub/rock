@@ -1,50 +1,13 @@
 #include "states.h"
 
-unsigned long lastWrite = millis();
-const int writeInterval = 250;
-
-bool canWrite() {
-  unsigned long currentTime = millis();
-  bool ok = (currentTime - lastWrite) > writeInterval;
-  if (ok) {
-    lastWrite = currentTime;
-  }
-  return ok;
-}
+const int LAUNCH_THRESHOLD = 1; // TODO: make this higher in actual launch
 
 void groundState() {
-  if (!BLE.connected()) {
-    ledWrite(255, 0, 0);
-    #ifdef DEBUG
-    Serial.println("BLE disconnected");
-    #endif
-    return;
-  }
-
-  bleReadState(); // Wait for READY command
-  bleServoPositionsRead();
-  if (canWrite()) {
-    #ifdef DEBUG
-    Serial.println("BLUETOOTH WRITE");
-    #endif
-    bleWriteState();
-    bleWriteSensors();
-  }
-
-  ledWrite(255, 50, 0);
-}
-
-const int LAUNCH_THRESHOLD = 1;
-
-void readyState() {
   #ifdef DEBUG
   Serial.println("READY");
   #endif
 
-  ledWrite(255, 255, 0);
-  if (BLE.connected()) {
-    BLE.disconnect();
-  }
+  ledWrite(255, 0, 0);
   if (!recording()) {
     startRecording();
   }
@@ -56,29 +19,3 @@ void readyState() {
   }
 }
 
-void landedTransition() {
-  setState(STATE_LANDED);
-  stopRecording();
-  BLE.advertise();
-  startTransmission();
-}
-
-void landedState() {
-  if (!BLE.connected()) {
-    #ifdef DEBUG
-    Serial.println("LANDED, BLE NOT CONNECTED");
-    #endif
-    ledWrite(150, 0, 255);
-    writeData();
-    return;
-  }
-  if (canWrite()) {
-    #ifdef DEBUG
-    Serial.println("BLUETOOTH WRITE");
-    #endif
-    bleWriteState();
-  }
-
-  ledWrite(255, 0, 190);
-  transmitData();
-}

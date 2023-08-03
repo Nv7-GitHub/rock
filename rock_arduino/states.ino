@@ -1,6 +1,6 @@
 #include "states.h"
 
-int state = STATE_GROUND;
+int state = STATE_NONE;
 int getState() {
   return state;
 }
@@ -10,28 +10,20 @@ void setState(int newState) {
 
 void stateMachine() {
   switch (state) {
+    case STATE_NONE:
+      ledWrite(255, 255, 255);
+      break;
+      
     case STATE_GROUND:
       groundState();
-      break;
-    
-    case STATE_READY:
-      readyState();
       break;
 
     case STATE_ASCENT:
       ascentState();
       break;
 
-    case STATE_APOGEE:
-      apogeeState();
-      break;
-
     case STATE_DESCENT:
       descentState();
-      break;
-    
-    case STATE_LANDED:
-      landedState();
       break;
   }
 }

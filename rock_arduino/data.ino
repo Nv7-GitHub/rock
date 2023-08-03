@@ -43,8 +43,8 @@ void setupData() {
 
   // Transmit data if frames available
   if (frameCount > 0) {
-    startTransmission();
-    setState(STATE_LANDED);
+    setState(STATE_TRANSFER);
+    transfer();
   }
 }
 
@@ -144,78 +144,17 @@ int checkFrameCount() {
   return addr;
 }
 
-/* Transmission procedure
-1. Write frame count to readFrames characteristic
-2. Wait for phone to respond with 1, increase transmittedFrames
-3. Loop:
-  a. Transmit frame
-  b. Wait for phone counter to go up
-*/
-unsigned int transmittedFrames = 0;
-bool waiting = false;
-int transmissionFrameTarget = 0;
-void startTransmission() {
-  transmissionFrameTarget = checkFrameCount();
-  #if DEBUG
-  Serial.print("FRAME COUNT TRANSMIT: ");
-  Serial.println(transmissionFrameTarget);
-  #endif
-  transmittedFrames = 0;
-  waiting = false;
-}
-void transmitData() {
-  // Check if done
-  if (transmittedFrames - 1 == transmissionFrameTarget) {
-    eraseFlash();
-    #if DEBUG
-    Serial.println("DONE TRANSMITTING");
-    #endif
-    setState(STATE_GROUND);
+void transfer() {
+  // INIT
+  ledWrite(0, 255, 255);
+  while (!Serial) {
+    delay(10);
   }
 
-  // Transmit frame count
-  if (transmittedFrames == 0) {
-    if (!waiting) {
-      readFrames.writeValue(transmissionFrameTarget);
-      waiting = true;
+  Serial.println("TRANSFER BEGIN");
+  delay(1000);
 
-      #if DEBUG
-      Serial.println("WRITE FRAME COUNT");
-      #endif
-    } else {
-      #if DEBUG
-      Serial.println("FRAME COUNT WAIT");
-      Serial.println(readFrames.value());
-      #endif
-      if (readFrames.written() && readFrames.value() == 1) {
-        waiting = false;
-        transmittedFrames++;
-      }
-    }
-  }
-
-  // Transmit frame
-  if (transmittedFrames > 0) {
-    if (!waiting) { // Write frame
-      // Read frame
-      memset(frameBuffer, 255, sizeof(frameBuffer));
-      flash.readBuffer((transmittedFrames-1) * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
-
-      // Write to BLE
-      frame.writeValue(frameBuffer, sizeof(frameBuffer));
-      waiting = true;
-
-      #if DEBUG
-      Serial.println("WRITE FRAME");
-      #endif
-    } else { // Wait for phone
-      #if DEBUG
-      Serial.println("FRAME WAIT");
-      #endif
-      if (readFrames.written() && readFrames.value() == transmittedFrames + 1) {
-        transmittedFrames++;
-        waiting = false;
-      } 
-    }
-  }
+  // DE-INIT
+  eraseFlash();
+  setState(STATE_GROUND);
 }

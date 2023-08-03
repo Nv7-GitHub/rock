@@ -1,6 +1,6 @@
 #include "states.h"
 
-const int APOGEE_THRESHOLD = 0.2; // Apogee of vertical velocity is less than this value (m/s)
+const int DESCENT_THRESHOLD = -0.2; // Descent velocity (m/s)
 
 void ascentState() {
   #ifdef DEBUG
@@ -9,22 +9,17 @@ void ascentState() {
   ledWrite(0, 255, 0);
   writeData();
 
-  if (getVel() < APOGEE_THRESHOLD) {
-    setState(STATE_APOGEE);
-  }
-}
-
-const int DESCENT_THRESHOLD = -0.2; // Apogee of descent velocity
-
-void apogeeState() {
-  #ifdef DEBUG
-  Serial.println("APOGEE");
-  #endif
-  ledWrite(0, 255, 255);
-  writeData();
-
   if (getVel() < DESCENT_THRESHOLD) {
     setState(STATE_DESCENT);
+  }
+
+  // FLIGHT CONTROL
+  if (getAlt() < 750) {
+    writeS1(1);
+    writeS2(1);
+  } else if (getAlt() > 750) {
+    writeS1(2);
+    writeS2(2);
   }
 }
 
@@ -33,10 +28,12 @@ void descentState() {
   #ifdef DEBUG
   Serial.println("DESCENT");
   #endif
+
   ledWrite(0, 0, 255);
   writeData();
 
   if (abs(getVel()) < LANDED_THRESHOLD) {
-    landedTransition();
+    setState(STATE_TRANSFER);
+    transfer();
   }
 }

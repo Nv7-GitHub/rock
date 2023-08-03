@@ -82,12 +82,17 @@ void predictPos() {
   roll = gyrox;
 }
 
+float recordingStartAlt = 0;
+void sensorStartRecording() {
+  recordingStartAlt = getAlt();
+}
+
 float getAccel() {
   return accel;
 }
 
 float getAlt() {
-  return alt;
+  return alt - recordingStartAlt;
 }
 
 float getVel() {
