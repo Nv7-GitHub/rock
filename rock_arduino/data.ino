@@ -52,16 +52,16 @@ void eraseFlash() {
   #ifdef DEBUG
   Serial.println("Erasing flash...");
   #endif
-  /*if (!flash.eraseChip()) {
+  if (!flash.eraseChip()) {
     Serial.println("Failed to erase flash");
   }
   flash.waitUntilReady();
-  */
-  int cnt = checkFrameCount();
+  
+  /*int cnt = checkFrameCount();
   memset(frameBuffer, 255, sizeof(frameBuffer));
   for (uint32_t i = 0; i < cnt; i++) {
     flash.writeBuffer(i * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
-  }
+  }*/
 }
 
 unsigned long startTime = 0;
