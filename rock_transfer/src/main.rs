@@ -3,10 +3,12 @@ const OUTPUT_PATH: &str = "flight.csv";
 use robust_arduino_serial::*;
 use serde::Serialize;
 use serial::{prelude::*, SystemPort};
-use std::process::Output;
+use std::io::Write;
 use std::slice;
 use std::time::Duration;
 use std::{io::Read, mem};
+
+// TODO: Style like indicatif yarnish example
 
 fn serial_send(port: &mut SystemPort) {
     write_i8(port, 1).unwrap();
@@ -105,4 +107,5 @@ fn main() {
 
     // Close
     serial_send(&mut port);
+    port.flush().unwrap();
 }

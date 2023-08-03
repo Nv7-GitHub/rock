@@ -1,6 +1,6 @@
 #include "states.h"
 
-const int DESCENT_THRESHOLD = -0.2; // Descent velocity (m/s)
+const float DESCENT_THRESHOLD = -0.2; // Descent velocity (m/s)
 
 void ascentState() {
   #ifdef DEBUG
@@ -33,6 +33,7 @@ void descentState() {
   writeData();
 
   if (abs(getVel()) < LANDED_THRESHOLD) {
+    stopRecording();
     setState(STATE_TRANSFER);
     transfer();
   }
