@@ -1,5 +1,7 @@
 const SERIAL_PORT: &str = "/dev/cu.usbmodem14201";
 const OUTPUT_PATH: &str = "flight.csv";
+use console::style;
+use indicatif::{ProgressBar, ProgressStyle};
 use robust_arduino_serial::*;
 use serde::Serialize;
 use serial::{prelude::*, SystemPort};
@@ -7,8 +9,6 @@ use std::io::Write;
 use std::slice;
 use std::time::Duration;
 use std::{io::Read, mem};
-
-// TODO: Style like indicatif yarnish example
 
 fn serial_send(port: &mut SystemPort) {
     write_i8(port, 1).unwrap();
@@ -38,7 +38,8 @@ struct DataFrame {
 const FRAME_SIZE: usize = mem::size_of::<DataFrame>();
 
 fn main() {
-    println!("Connecting...");
+    println!("{} Connecting to ROCK...", style("[1/5]").bold().dim());
+
     let mut port = serial::open(&SERIAL_PORT).unwrap();
     port.configure(&serial::PortSettings {
         baud_rate: serial::Baud9600,
@@ -54,8 +55,7 @@ fn main() {
     loop {
         let v = read_i8(&mut port).unwrap();
         if v == 1 {
-            println!("Connected!");
-            break;
+            break; // Connected!
         }
     }
 
@@ -64,12 +64,18 @@ fn main() {
 
     // Get frame count
     let frame_count = read_i32(&mut port).unwrap();
-    println!("Frames available: {}", frame_count);
+    println!(
+        "{} Frames available: {}",
+        style("[2/5]").bold().dim(),
+        frame_count
+    );
     serial_send(&mut port);
 
     // Get frames
+    println!("{} Reading frames...", style("[3/5]").bold().dim());
+    let pb = ProgressBar::new(frame_count as u64);
     let mut frames = Vec::new();
-    for i in 0..frame_count {
+    for _ in 0..frame_count {
         // Read frame
         let mut buff: [u8; FRAME_SIZE] = [0; FRAME_SIZE];
         for j in 0..FRAME_SIZE {
@@ -90,22 +96,20 @@ fn main() {
         // Save frame
         frames.push(frame);
         serial_send(&mut port);
-        println!(
-            "Reading frames... {}%",
-            (i as f32 / frame_count as f32) * 100.0
-        );
+        pb.inc(1);
     }
+    pb.finish_and_clear();
 
     // Write to CSV
-    println!("Writing frames...");
+    println!("{} Writing frames...", style("[4/5]").bold().dim());
     let mut writer = csv::Writer::from_path(OUTPUT_PATH).unwrap();
     for frame in frames {
         writer.serialize(frame).unwrap();
     }
     writer.flush().unwrap();
-    println!("Wrote frames!");
 
     // Close
     serial_send(&mut port);
     port.flush().unwrap();
+    println!("{} Done!", style("[5/5]").bold().dim());
 }
