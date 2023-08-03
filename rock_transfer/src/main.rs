@@ -1,7 +1,7 @@
 const SERIAL_PORT: &str = "/dev/cu.usbmodem14201";
 const OUTPUT_PATH: &str = "flight.csv";
 use console::style;
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::ProgressBar;
 use robust_arduino_serial::*;
 use serde::Serialize;
 use serial::{prelude::*, SystemPort};
