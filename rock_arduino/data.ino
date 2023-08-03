@@ -144,15 +144,39 @@ int checkFrameCount() {
   return addr;
 }
 
+void serialWait() {
+  while (!Serial.available() > 0) { // Wait for sender to send "1"
+    delay(1);
+  }
+  Serial.read();
+}
+
 void transfer() {
   // INIT
   ledWrite(0, 255, 255);
   while (!Serial) {
     delay(10);
   }
-
+  
+  // Begin transfer
   Serial.println("TRANSFER BEGIN");
-  delay(1000);
+  serialWait();
+
+  // Write frame count
+  int frameCount = checkFrameCount();
+  Serial.write(&frameCount, sizeof(frameCount));
+  serialWait();
+
+  // Transfer frames
+  for (int i = 0; i < frameCount; i++) {
+    memset(frameBuffer, 255, sizeof(frameBuffer));
+    flash.readBuffer(i * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
+    Serial.write(frameBuffer, sizeof(frameBuffer));
+    serialWait();
+  }
+
+  // Wait for OK
+  serialWait();
 
   // DE-INIT
   eraseFlash();
