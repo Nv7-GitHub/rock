@@ -179,7 +179,10 @@ void transfer() {
   // Wait for OK
   serialWait();
 
-  // DE-INIT
+  // Erase
   eraseFlash();
+  Serial.write(1);
+
+  // Move on
   setState(STATE_GROUND);
 }

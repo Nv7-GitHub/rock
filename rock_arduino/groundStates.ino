@@ -12,8 +12,6 @@ void groundState() {
     startRecording();
   }
 
-  writeData();
-
   if (getAccel() > LAUNCH_THRESHOLD) {
     setState(STATE_ASCENT);
   }

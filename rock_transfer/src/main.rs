@@ -38,7 +38,7 @@ struct DataFrame {
 const FRAME_SIZE: usize = mem::size_of::<DataFrame>();
 
 fn main() {
-    println!("{} Connecting to ROCK...", style("[1/5]").bold().dim());
+    println!("{} Connecting to ROCK...", style("[1/6]").bold().dim());
 
     let mut port = serial::open(&SERIAL_PORT).unwrap();
     port.configure(&serial::PortSettings {
@@ -66,13 +66,13 @@ fn main() {
     let frame_count = read_i32(&mut port).unwrap();
     println!(
         "{} Frames available: {}",
-        style("[2/5]").bold().dim(),
+        style("[2/6]").bold().dim(),
         frame_count
     );
     serial_send(&mut port);
 
     // Get frames
-    println!("{} Reading frames...", style("[3/5]").bold().dim());
+    println!("{} Reading frames...", style("[3/6]").bold().dim());
     let pb = ProgressBar::new(frame_count as u64);
     let mut frames = Vec::new();
     for _ in 0..frame_count {
@@ -101,15 +101,24 @@ fn main() {
     pb.finish_and_clear();
 
     // Write to CSV
-    println!("{} Writing frames...", style("[4/5]").bold().dim());
+    println!("{} Writing frames...", style("[4/6]").bold().dim());
     let mut writer = csv::Writer::from_path(OUTPUT_PATH).unwrap();
     for frame in frames {
         writer.serialize(frame).unwrap();
     }
     writer.flush().unwrap();
 
-    // Close
+    // OK the transfer
     serial_send(&mut port);
     port.flush().unwrap();
-    println!("{} Done!", style("[5/5]").bold().dim());
+    println!("{} Erasing flash chip...", style("[5/6]").bold().dim());
+
+    // Wait for erase
+    loop {
+        let v = read_i8(&mut port).unwrap();
+        if v == 1 {
+            break; // Connected!
+        }
+    }
+    println!("{} Done!", style("[6/6]").bold().dim());
 }
