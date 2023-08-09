@@ -30,10 +30,15 @@ const int FRAME_SIZE = sizeof(DataFrame);
 // https://github.com/adafruit/Adafruit_SPIFlash/blob/1cd95724810c3dc845d7dbb48092f87616c8a628/examples/SdFat_full_usage/SdFat_full_usage.ino
 
 uint32_t frameCount = 0;
-uint8_t frameBuffer[sizeof(DataFrame)];
+const int FRAME_BUFF_SIZE = 10;
+uint8_t frameBuffer[sizeof(DataFrame) * FRAME_BUFF_SIZE];
+uint8_t singleFrameBuffer[sizeof(DataFrame)];
+int buff_space = 0;
 void setupData() {
   if (!flash.begin()) {
     Serial.println("Failed to initialize Flash");
+    ledWrite(0, 255, 0);
+    delay(1000);
   }
 
   // Check for data
@@ -41,7 +46,7 @@ void setupData() {
   Serial.print(frameCount);
   Serial.println(" frames available");
 
-  // Transmit data if frames available
+  // Transfer data if frames available
   if (frameCount > 0) {
     setState(STATE_TRANSFER);
     transfer();
@@ -52,26 +57,29 @@ void eraseFlash() {
   #ifdef DEBUG
   Serial.println("Erasing flash...");
   #endif
-  if (!flash.eraseChip()) {
-    Serial.println("Failed to erase flash");
+
+  // Erase sectors needed
+  int eraseCnt = (checkFrameCount() * sizeof(singleFrameBuffer)) / 4096 + 1;
+  for (int i = 0; i < eraseCnt; i++) {
+    flash.eraseSector(i);
   }
-  flash.waitUntilReady();
-  
-  /*int cnt = checkFrameCount();
-  memset(frameBuffer, 255, sizeof(frameBuffer));
-  for (uint32_t i = 0; i < cnt; i++) {
-    flash.writeBuffer(i * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
-  }*/
 }
 
 unsigned long startTime = 0;
 void startRecording() {
   frameCount = 0;
   startTime = millis();
+  sensorStartRecording();
 }
 
 void stopRecording() {
   startTime = 0;
+
+  // Write remaining frames
+  flash.writeBuffer(frameCount * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
+  frameCount++;
+  buff_space = 0;
+  memset(frameBuffer, 255, sizeof(frameBuffer));
 }
 
 bool recording() {
@@ -114,20 +122,25 @@ void writeData() {
 
 
   // Write data
-  memcpy(frameBuffer, &data, sizeof(data));
-  flash.writeBuffer(frameCount * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
-  frameCount++;
+  memcpy(&frameBuffer[buff_space * sizeof(data)], &data, sizeof(data));
+  buff_space++;
+  if (buff_space == FRAME_BUFF_SIZE) {
+    flash.writeBuffer(frameCount * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
+    frameCount++;
+    buff_space = 0;
+    memset(frameBuffer, 255, sizeof(frameBuffer));
+  }
 }
 
 bool checkFrame(int addr) {
-  memset(frameBuffer, 255, sizeof(frameBuffer));
-  flash.readBuffer(addr * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
-  for (int i = 0; i < sizeof(frameBuffer); i++) {
-    if (frameBuffer[i] != 255) {  // Frame buffer has data
+  memset(singleFrameBuffer, 255, sizeof(singleFrameBuffer));
+  flash.readBuffer(addr * sizeof(singleFrameBuffer), singleFrameBuffer, sizeof(singleFrameBuffer));
+  for (int i = 0; i < sizeof(singleFrameBuffer); i++) {
+    if (singleFrameBuffer[i] != 255) {  // Frame buffer has data
       // Use this code to read the data from the frame
       /*// Read frame
       DataFrame data;
-      memcpy(&data, &frameBuffer, sizeof(frameBuffer));
+      memcpy(&data, &singleFrameBuffer, sizeof(singleFrameBuffer));
       Serial.print("Frame time: ");
       Serial.println(data.time);*/
       return true;
@@ -155,8 +168,9 @@ void transfer() {
   // INIT
   ledWrite(0, 255, 255);
   while (!Serial) {
-    delay(10);
+    delay(1);
   }
+  delay(100); // Wait for transfer to start up
   
   // Begin transfer
   Serial.println("TRANSFER BEGIN");
@@ -170,9 +184,9 @@ void transfer() {
 
   // Transfer frames
   for (int i = 0; i < frameCount; i++) {
-    memset(frameBuffer, 255, sizeof(frameBuffer));
-    flash.readBuffer(i * sizeof(frameBuffer), frameBuffer, sizeof(frameBuffer));
-    Serial.write(frameBuffer, sizeof(frameBuffer));
+    memset(singleFrameBuffer, 255, sizeof(singleFrameBuffer));
+    flash.readBuffer(i * sizeof(singleFrameBuffer), singleFrameBuffer, sizeof(singleFrameBuffer));
+    Serial.write(singleFrameBuffer, sizeof(singleFrameBuffer));
     serialWait();
   }
 

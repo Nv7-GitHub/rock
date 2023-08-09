@@ -12,21 +12,31 @@ Altitude: m
 
 void setupSensors() {
   if (!IMU.begin()) {
-    #ifdef DEBUG
     Serial.println("Failed to initialize IMU");
-    #endif
+    ledWrite(0, 255, 0);
+    delay(1000);
   }
   if (!HS300x.begin()) {
-    #ifdef DEBUG
     Serial.println("Failed to initialize temperature sensor");
-    #endif
   }
   if (!BARO.begin()) {
-    #ifdef DEBUG
     Serial.println("Failed to initialize pressure sensor");
-    #endif
+    ledWrite(0, 255, 0);
+    delay(1000);
   }
 }
+
+// Slow sensors
+unsigned long lastSlowRead = millis();
+bool canSlowRead() {
+  unsigned long now = millis();
+  if (now - lastSlowRead > 250) {
+    lastSlowRead = now;
+    return true;
+  }
+  return false;
+}
+
 
 // Sensor values
 float accelx, accely, accelz;
@@ -50,7 +60,9 @@ bool readSensors() {
   }
 
   // Temperature
-  temp = HS300x.readTemperature();
+  if (canSlowRead()) {
+    temp = HS300x.readTemperature();
+  }
 
   // Barometer
   float pressure = BARO.readPressure();
@@ -65,8 +77,8 @@ bool readSensors() {
   return true;
 }
 
-SimpleKalmanFilter altKf = SimpleKalmanFilter(0.05, 0.05, 0.01);
-SimpleKalmanFilter velKf = SimpleKalmanFilter(0.05, 0.05, 0.01);
+SimpleKalmanFilter altKf = SimpleKalmanFilter(0.04, 0.04, 0.01);
+SimpleKalmanFilter velKf = SimpleKalmanFilter(0.03, 0.03, 0.01);
 
 float lastAlt;
 
@@ -75,7 +87,7 @@ float alt;
 float vel;
 float roll;
 void predictPos() {
-  accel = accelx + 1; // Account for grav
+  accel = accelx - 1; // Account for grav
   alt = altKf.updateEstimate((double)baroAlt);
   vel = velKf.updateEstimate((double)(alt - lastAlt) / dT);
   lastAlt = alt;
@@ -85,6 +97,7 @@ void predictPos() {
 float recordingStartAlt = 0;
 void sensorStartRecording() {
   recordingStartAlt = getAlt();
+  lastAlt = getAlt();
 }
 
 float getAccel() {

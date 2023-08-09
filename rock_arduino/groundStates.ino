@@ -1,6 +1,6 @@
 #include "states.h"
 
-const int LAUNCH_THRESHOLD = 1; // TODO: make this higher in actual launch
+const int LAUNCH_THRESHOLD = 1.5; // TODO: make this higher in actual launch
 
 void groundState() {
   #ifdef DEBUG
@@ -8,9 +8,6 @@ void groundState() {
   #endif
 
   ledWrite(255, 0, 0);
-  if (!recording()) {
-    startRecording();
-  }
 
   if (getAccel() > LAUNCH_THRESHOLD) {
     setState(STATE_ASCENT);
