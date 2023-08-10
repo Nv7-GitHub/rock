@@ -5,38 +5,25 @@ Velocity: m/s
 Altitude: m
 */
 
-#include <Arduino_BMI270_BMM150.h>
-#include <Arduino_LPS22HB.h>
-#include <Arduino_HS300x.h>
+#include <Adafruit_BMP280.h>
+#include <Adafruit_BNO055.h>
 #include <SimpleKalmanFilter.h>
 
+Adafruit_BMP280 bmp;
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+
 void setupSensors() {
-  if (!IMU.begin()) {
+  if (!bno.begin()) {
     Serial.println("Failed to initialize IMU");
     ledWrite(0, 255, 0);
     delay(1000);
   }
-  if (!HS300x.begin()) {
-    Serial.println("Failed to initialize temperature sensor");
-  }
-  if (!BARO.begin()) {
+  if (!bmp.begin(0x76, 0x58)) {
     Serial.println("Failed to initialize pressure sensor");
     ledWrite(0, 255, 0);
     delay(1000);
   }
 }
-
-// Slow sensors
-unsigned long lastSlowRead = millis();
-bool canSlowRead() {
-  unsigned long now = millis();
-  if (now - lastSlowRead > 250) {
-    lastSlowRead = now;
-    return true;
-  }
-  return false;
-}
-
 
 // Sensor values
 float accelx, accely, accelz;
@@ -46,27 +33,30 @@ float temp;
 unsigned long lastRead = millis();
 double dT;
 bool readSensors() {
-  if (!IMU.readAcceleration(accelx, accely, accelz)) {
-    #ifdef DEBUG
-    Serial.println("Failed to read IMU");
-    #endif
-    return false;
-  }
-  if (!IMU.readGyroscope(gyrox, gyroy, gyroz)) {
-    #ifdef DEBUG
-    Serial.println("Failed to read IMU");
-    #endif
-    return false;
-  }
+  imu::Quaternion quat = bno.getQuat();
+  quat.x() = -quat.x();
+  quat.y() = -quat.y();
+  quat.z() = -quat.z();
+  imu::Vector<3> linearaccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+  imu::Vector<3> acc;
+  // https://forums.adafruit.com/viewtopic.php?t=114125
+  acc[0] = (1-2*(quat.y()*quat.y() + quat.z()*quat.z()))*linearaccel[0] +   (2*(quat.x()*quat.y() + quat.w()*quat.z()))*linearaccel[1] +   (2*(quat.x()*quat.z() - quat.w()*quat.y()))*linearaccel[2];  // rotate linearaccel by quaternion
+  acc[1] =   (2*(quat.x()*quat.y() - quat.w()*quat.z()))*linearaccel[0] + (1-2*(quat.x()*quat.x() + quat.z()*quat.z()))*linearaccel[1] +   (2*(quat.y()*quat.z() + quat.w()*quat.x()))*linearaccel[2];
+  acc[2] =   (2*(quat.x()*quat.z() + quat.w()*quat.y()))*linearaccel[0] +   (2*(quat.y()*quat.z() - quat.w()*quat.x()))*linearaccel[1] + (1-2*(quat.x()*quat.x() + quat.y()*quat.y()))*linearaccel[2];
+
+  accelx = acc[0];
+  accely = acc[1];
+  accelz = acc[2];
+  gyrox = gyro[0];
+  gyroy = gyro[1];
+  gyroz = gyro[2];
 
   // Temperature
-  if (canSlowRead()) {
-    temp = HS300x.readTemperature();
-  }
+  temp = bmp.readTemperature();
 
   // Barometer
-  float pressure = BARO.readPressure();
-  baroAlt = 44330 * (1 - pow(pressure/101.325, 1/5.255)); // https://docs.arduino.cc/tutorials/nano-33-ble-sense/barometric-sensor
+  baroAlt = bmp.readAltitude(1013.25);
 
   // Calc dT
   unsigned long currentTime = millis();
@@ -77,7 +67,7 @@ bool readSensors() {
   return true;
 }
 
-SimpleKalmanFilter altKf = SimpleKalmanFilter(0.04, 0.04, 0.01);
+//SimpleKalmanFilter altKf = SimpleKalmanFilter(0.04, 0.04, 0.01);
 SimpleKalmanFilter velKf = SimpleKalmanFilter(0.03, 0.03, 0.01);
 
 float lastAlt;
@@ -87,9 +77,10 @@ float alt;
 float vel;
 float roll;
 void predictPos() {
-  accel = accelx - 1; // Account for grav
-  alt = altKf.updateEstimate((double)baroAlt);
-  vel = velKf.updateEstimate((double)(alt - lastAlt) / dT);
+  accel = accelz;
+  //alt = altKf.updateEstimate((double)baroAlt);
+  alt = baroAlt;
+  vel = velKf.updateEstimate((double)(alt - lastAlt) / dT); // TODO: Combine with accelz
   lastAlt = alt;
   roll = gyrox;
 }
