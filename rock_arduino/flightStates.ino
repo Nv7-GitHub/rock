@@ -20,20 +20,20 @@ void ascentState() {
   }
 
   // FLIGHT CONTROL
-  if (getAlt() < 700) { // 0-700 ft: 3deg
-    writeS1(87);
-    writeS2(87);
-  } else if (getAlt() > 700 && getAlt() < 810) { // 700-810ft: 5deg
-    writeS1(84);
-    writeS2(84);
-  } else if (getAlt() > 810) { // 810ft+: 45deg airbrakes
+  if (getAlt() < 213) { // 0-700 ft: 10deg
+    writeS1(80);
+    writeS2(80);
+  } else if (getAlt() > 213 && getAlt() < 246) { // 700-810ft: 20deg
+    writeS1(70);
+    writeS2(70);
+  } else if (getAlt() > 246) { // 810ft+: 45deg airbrakes
     writeS1(45);
     writeS2(45);
   }
 }
 
 const float LANDED_THRESHOLD = 0.05; // Velocity on the ground
-const float LANDED_ALT_THRESHOLD = 0.5; // Have to be this far from starting alt to be landed
+const float LANDED_ALT_THRESHOLD = 1.25; // Have to be within this far from starting alt to be landed
 void descentState() {
   #ifdef DEBUG
   Serial.println("DESCENT");
