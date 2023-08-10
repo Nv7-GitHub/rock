@@ -10,18 +10,14 @@ Altitude: m
 #include <SimpleKalmanFilter.h>
 
 Adafruit_BMP280 bmp;
-Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28);
+Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x29);
 
 void setupSensors() {
   if (!bno.begin()) {
-    Serial.println("Failed to initialize IMU");
-    ledWrite(0, 255, 0);
-    delay(1000);
+    setupError("Failed to initialize IMU");
   }
   if (!bmp.begin(0x76, 0x58)) {
-    Serial.println("Failed to initialize pressure sensor");
-    ledWrite(0, 255, 0);
-    delay(1000);
+    setupError("Failed to initialize barometer");
   }
 }
 
@@ -56,7 +52,7 @@ bool readSensors() {
   temp = bmp.readTemperature();
 
   // Barometer
-  baroAlt = bmp.readAltitude(1013.25);
+  baroAlt = bmp.readAltitude(1017.14);
 
   // Calc dT
   unsigned long currentTime = millis();
@@ -67,7 +63,7 @@ bool readSensors() {
   return true;
 }
 
-//SimpleKalmanFilter altKf = SimpleKalmanFilter(0.04, 0.04, 0.01);
+SimpleKalmanFilter altKf = SimpleKalmanFilter(0.04, 0.04, 0.01);
 SimpleKalmanFilter velKf = SimpleKalmanFilter(0.03, 0.03, 0.01);
 
 float lastAlt;
@@ -78,8 +74,7 @@ float vel;
 float roll;
 void predictPos() {
   accel = accelz;
-  //alt = altKf.updateEstimate((double)baroAlt);
-  alt = baroAlt;
+  alt = altKf.updateEstimate((double)baroAlt);
   vel = velKf.updateEstimate((double)(alt - lastAlt) / dT); // TODO: Combine with accelz
   lastAlt = alt;
   roll = gyrox;

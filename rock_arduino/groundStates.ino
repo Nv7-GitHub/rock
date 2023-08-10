@@ -1,6 +1,6 @@
 #include "states.h"
 
-const int LAUNCH_THRESHOLD = 2.5; // TODO: make this higher in actual launch
+const int LAUNCH_THRESHOLD = 35; // m/s^2
 
 void groundState() {
   #ifdef DEBUG

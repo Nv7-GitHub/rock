@@ -36,9 +36,7 @@ uint8_t singleFrameBuffer[sizeof(DataFrame)];
 int buff_space = 0;
 void setupData() {
   if (!flash.begin()) {
-    Serial.println("Failed to initialize Flash");
-    ledWrite(0, 255, 0);
-    delay(1000);
+    setupError("Failed to initialize flash");
   }
 
   // Check for data

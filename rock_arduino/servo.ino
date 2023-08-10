@@ -7,8 +7,8 @@ int S1pos;
 int S2pos;
 int S3pos;
 
-const int S1Offset = 8;
-const int S2Offset = 0;
+const int S1Offset = 0;
+const int S2Offset = 8;
 const int S3Offset = 0;
 
 void setupServos() {
