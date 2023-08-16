@@ -21,13 +21,13 @@ void ascentState() {
 
   // FLIGHT CONTROL
   if (getAlt() < 213) { // 0-700 ft: 10deg
-    writeS1(80);
+    writeS3(80);
     writeS2(80);
   } else if (getAlt() > 213 && getAlt() < 246) { // 700-810ft: 20deg
-    writeS1(70);
+    writeS3(70);
     writeS2(70);
   } else if (getAlt() > 246) { // 810ft+: 45deg airbrakes
-    writeS1(45);
+    writeS3(45);
     writeS2(45);
   }
 }
@@ -47,6 +47,7 @@ void descentState() {
     setState(STATE_TRANSFER);
     writeS1(90);
     writeS2(90);
+    writeS3(90);
     transfer();
   }
 }

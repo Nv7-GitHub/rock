@@ -5,7 +5,7 @@
 Adafruit_FlashTransport_SPI flashTransport(SS, SPI);
 Adafruit_SPIFlash flash(&flashTransport);
 
-#pragma pack
+#pragma pack(push,1)
 struct DataFrame {
   unsigned long time;
   int state;
@@ -25,6 +25,8 @@ struct DataFrame {
   float baro;
   float temp;
 };
+#pragma pack(pop)
+
 const int FRAME_SIZE = sizeof(DataFrame);
 
 // https://github.com/adafruit/Adafruit_SPIFlash/blob/1cd95724810c3dc845d7dbb48092f87616c8a628/examples/SdFat_full_usage/SdFat_full_usage.ino

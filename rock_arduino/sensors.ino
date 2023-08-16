@@ -70,7 +70,7 @@ float lastAlt;
 
 float accel; // Acceleration going up
 float alt;
-float vel;
+float vel; // Vel going up
 float roll;
 void predictPos() {
   accel = accelz;
