@@ -8,10 +8,6 @@ void ascentState() {
   Serial.println("ASCENT");
   #endif
 
-  if (!recording()) {
-    startRecording();
-  }
-
   ledWrite(0, 255, 0);
   writeData();
 
