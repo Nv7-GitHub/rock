@@ -34,36 +34,19 @@ const int FRAME_SIZE = sizeof(DataFrame);
 uint32_t frameCount = 0;
 const int FRAME_BUFF_SIZE = 10;
 uint8_t frameBuffer[sizeof(DataFrame) * FRAME_BUFF_SIZE];
-uint8_t singleFrameBuffer[sizeof(DataFrame)];
 int buff_space = 0;
 void setupData() {
   if (!flash.begin()) {
     setupError("Failed to initialize flash");
   }
 
-  // Check for data
-  int frameCount = checkFrameCount();
-  Serial.print(frameCount);
-  Serial.println(" frames available");
-
   // Transfer data if frames available
-  if (frameCount > 0) {
+  if (hasData()) {
     setState(STATE_TRANSFER);
     transfer();
   }
 }
 
-void eraseFlash() {
-  #ifdef DEBUG
-  Serial.println("Erasing flash...");
-  #endif
-
-  // Erase sectors needed
-  int eraseCnt = (checkFrameCount() * sizeof(singleFrameBuffer)) / 4096 + 1;
-  for (int i = 0; i < eraseCnt; i++) {
-    flash.eraseSector(i);
-  }
-}
 
 unsigned long startTime = 0;
 void startRecording() {
@@ -132,29 +115,15 @@ void writeData() {
   }
 }
 
-bool checkFrame(int addr) {
-  memset(singleFrameBuffer, 255, sizeof(singleFrameBuffer));
-  flash.readBuffer(addr * sizeof(singleFrameBuffer), singleFrameBuffer, sizeof(singleFrameBuffer));
-  for (int i = 0; i < sizeof(singleFrameBuffer); i++) {
-    if (singleFrameBuffer[i] != 255) {  // Frame buffer has data
-      // Use this code to read the data from the frame
-      /*// Read frame
-      DataFrame data;
-      memcpy(&data, &singleFrameBuffer, sizeof(singleFrameBuffer));
-      Serial.print("Frame time: ");
-      Serial.println(data.time);*/
+bool hasData() {
+  uint8_t buff[1] = {255};
+  flash.readBuffer(0, buff, sizeof(buff));
+  for (int i = 0; i < sizeof(buff); i++) {
+    if (i != 255) {
       return true;
     }
   }
   return false;
-}
-
-int checkFrameCount() {
-  int addr = 0;
-  while (checkFrame(addr)) {
-    addr++;
-  }
-  return addr;
 }
 
 void serialWait() {
@@ -165,6 +134,28 @@ void serialWait() {
 }
 
 void transfer() {
+  // Get sector count
+  int sectorCount = 0;
+  while (true) {
+    uint8_t buf[4096];
+    memset(buf, 255, sizeof(buf));
+    flash.readBuffer(sectorCount * 4096, buf, 4096);
+    bool hasData = false;
+    for (int i = 0; i < sizeof(buf); i++) {
+      if (buf[i] != 255) {
+        hasData = true;
+        break;
+      }
+    }
+    if (!hasData) {
+      break;
+    }
+    sectorCount++;
+    if (sectorCount > 8000000/4096) {
+      break;
+    }
+  }
+
   // INIT
   ledWrite(0, 255, 255);
   while (!Serial) {
@@ -177,16 +168,16 @@ void transfer() {
   Serial.write(1);
   serialWait();
 
-  // Write frame count
-  int frameCount = checkFrameCount();
-  Serial.write((char*)(&frameCount), sizeof(frameCount));
+  // Write sector count
+  Serial.write((char*)(&sectorCount), sizeof(sectorCount));
   serialWait();
 
   // Transfer frames
-  for (int i = 0; i < frameCount; i++) {
-    memset(singleFrameBuffer, 255, sizeof(singleFrameBuffer));
-    flash.readBuffer(i * sizeof(singleFrameBuffer), singleFrameBuffer, sizeof(singleFrameBuffer));
-    Serial.write(singleFrameBuffer, sizeof(singleFrameBuffer));
+  for (int i = 0; i < sectorCount; i++) {
+    uint8_t buf[4096];
+    memset(buf, 255, sizeof(buf));
+    flash.readBuffer(sectorCount * 4096, buf, 4096);
+    Serial.write(buf, sizeof(buf));
     serialWait();
   }
 
@@ -194,7 +185,9 @@ void transfer() {
   serialWait();
 
   // Erase
-  eraseFlash();
+  for (int i = 0; i < sectorCount; i++) {
+    flash.eraseSector(i);
+  }
   Serial.write(1);
 
   // Move on

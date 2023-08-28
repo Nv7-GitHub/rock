@@ -63,25 +63,46 @@ fn main() {
     serial_send(&mut port);
 
     // Get frame count
-    let frame_count = read_i32(&mut port).unwrap();
+    let sector_count = read_i32(&mut port).unwrap();
     println!(
-        "{} Frames available: {}",
+        "{} Sectors available: {}",
         style("[2/6]").bold().dim(),
-        frame_count
+        sector_count
     );
     serial_send(&mut port);
 
-    // Get frames
-    println!("{} Reading frames...", style("[3/6]").bold().dim());
-    let pb = ProgressBar::new(frame_count as u64);
-    let mut frames = Vec::new();
-    for _ in 0..frame_count {
-        // Read frame
-        let mut buff: [u8; FRAME_SIZE] = [0; FRAME_SIZE];
-        for j in 0..FRAME_SIZE {
+    // Get sectors
+    println!("{} Reading sectors...", style("[3/6]").bold().dim());
+    let pb = ProgressBar::new(sector_count as u64);
+    let mut data = Vec::new();
+    for _ in 0..sector_count {
+        // Read sector
+        let mut buff: [u8; 4096] = [0; 4096];
+        for j in 0..4096 {
             let mut read_buffer = [0u8; 1];
             port.read_exact(&mut read_buffer).unwrap();
             buff[j] = read_buffer[0];
+        }
+        data.append(&mut buff.to_vec());
+
+        // Update
+        serial_send(&mut port);
+        pb.inc(1);
+    }
+    pb.finish_and_clear();
+
+    // Process frames
+    let mut frames = Vec::new();
+    for i in 0..(data.len() / FRAME_SIZE) {
+        let mut has_frame = false;
+        for j in 0..FRAME_SIZE {
+            if data[FRAME_SIZE * i + j] != 255 {
+                has_frame = true;
+                break;
+            }
+        }
+        if !has_frame {
+            break;
         }
 
         // Move to frame
@@ -90,15 +111,14 @@ fn main() {
             let config_slice =
                 slice::from_raw_parts_mut(&mut frame as *mut _ as *mut u8, FRAME_SIZE);
             // `read_exact()` comes from `Read` impl for `&[u8]`
-            (&buff[0..buff.len()]).read_exact(config_slice).unwrap();
+            (&data[i * FRAME_SIZE..(i + 1) * FRAME_SIZE])
+                .read_exact(config_slice)
+                .unwrap();
         }
 
         // Save frame
         frames.push(frame);
-        serial_send(&mut port);
-        pb.inc(1);
     }
-    pb.finish_and_clear();
 
     // Write to CSV
     println!("{} Writing frames...", style("[4/6]").bold().dim());
@@ -109,7 +129,7 @@ fn main() {
     writer.flush().unwrap();
 
     // OK the transfer
-    serial_send(&mut port);
+    /*serial_send(&mut port);
     port.flush().unwrap();
     println!("{} Erasing flash chip...", style("[5/6]").bold().dim());
 
@@ -120,5 +140,5 @@ fn main() {
             break; // Connected!
         }
     }
-    println!("{} Done!", style("[6/6]").bold().dim());
+    println!("{} Done!", style("[6/6]").bold().dim());*/
 }

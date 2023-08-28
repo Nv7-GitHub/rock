@@ -52,7 +52,7 @@ bool readSensors() {
   temp = bmp.readTemperature();
 
   // Barometer
-  baroAlt = bmp.readAltitude(1017.14);
+  baroAlt = bmp.readAltitude(1016.8);
 
   // Calc dT
   unsigned long currentTime = millis();
