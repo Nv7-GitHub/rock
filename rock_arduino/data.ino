@@ -153,6 +153,9 @@ int checkFrameCount() {
   int addr = 0;
   while (checkFrame(addr)) {
     addr++;
+    if (addr > 8000000/sizeof(singleFrameBuffer)) {
+      break;
+    }
   }
   return addr;
 }
