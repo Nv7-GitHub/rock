@@ -16,16 +16,18 @@ void ascentState() {
   }
 
   // FLIGHT CONTROL
-  if (getAlt() < 213) { // 0-700 ft: 10deg
-    writeS3(80);
-    writeS2(80);
-  } else if (getAlt() > 213 && getAlt() < 246) { // 700-810ft: 20deg
-    writeS3(70);
-    writeS2(70);
-  } else if (getAlt() > 246) { // 810ft+: 45deg airbrakes
+  /*if (getAlt() < 213) { // 0-700 ft: 10deg
+    writeS3(89);
+    writeS2(89);
+  } else if (getAlt() > 213 && getAlt() < 230) { // 700-750ft: 20deg
+    writeS3(85);
+    writeS2(85);
+  } else if (getAlt() > 230) { // 750ft+: 45deg airbrakes
     writeS3(45);
     writeS2(45);
-  }
+  }*/
+  writeS3(90);
+  writeS2(90);
 }
 
 const float LANDED_THRESHOLD = 0.05; // Velocity on the ground
@@ -37,6 +39,9 @@ void descentState() {
 
   ledWrite(0, 0, 255);
   writeData();
+
+  writeS3(90);
+  writeS2(90);
 
   if (abs(getVel()) < LANDED_THRESHOLD && abs(getAlt()) < LANDED_ALT_THRESHOLD) {
     stopRecording();

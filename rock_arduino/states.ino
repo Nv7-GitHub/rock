@@ -18,6 +18,10 @@ void stateMachine() {
       groundState();
       break;
 
+    case STATE_READY:
+      readyState();
+      break;
+
     case STATE_ASCENT:
       ascentState();
       break;

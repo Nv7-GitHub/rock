@@ -90,6 +90,10 @@ float getAccel() {
   return accel;
 }
 
+float getTotalAccel() {
+  return abs(accelx) + abs(accely) + abs(accelz);
+}
+
 float getAlt() {
   return alt - recordingStartAlt;
 }
