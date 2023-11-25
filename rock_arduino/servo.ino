@@ -8,8 +8,8 @@ int S2pos;
 int S3pos;
 
 const int S1Offset = 0;
-const int S2Offset = 0;
-const int S3Offset = 0;
+const int S2Offset = -2;
+const int S3Offset = -11;
 
 void setupServos() {
   S1.attach(2, 900, 2100);
