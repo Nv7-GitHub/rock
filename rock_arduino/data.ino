@@ -1,6 +1,7 @@
 #include "states.h"
 #include <SPI.h>
 #include <Adafruit_SPIFlash.h>
+// If you get QSPI compile error, check this: https://github.com/adafruit/Adafruit_SPIFlash/issues/141
 
 Adafruit_FlashTransport_SPI flashTransport(SS, SPI);
 Adafruit_SPIFlash flash(&flashTransport);
