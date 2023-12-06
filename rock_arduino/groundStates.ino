@@ -1,6 +1,6 @@
 #include "states.h"
 
-const int READY_THRESHOLD = 50; // m/s^2
+const int READY_THRESHOLD = 54; // m/s^2
 void groundState() {
   #ifdef DEBUG
   Serial.println("GROUND");
@@ -31,8 +31,8 @@ void readyState() {
   writeData();
 
   // Flight initial fin angles
-  writeS3(84);
-  writeS2(84);
+  writeS3(78);
+  writeS2(78);
 
   if (getAccel()  > LAUNCH_THRESHOLD) {
     setState(STATE_ASCENT);

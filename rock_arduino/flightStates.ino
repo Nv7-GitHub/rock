@@ -26,8 +26,8 @@ void ascentState() {
     writeS3(45);
     writeS2(45);
   }*/
-  writeS3(84);
-  writeS2(84);
+  writeS3(78);
+  writeS2(78);
 }
 
 const float LANDED_THRESHOLD = 0.05; // Velocity on the ground
@@ -40,8 +40,8 @@ void descentState() {
   ledWrite(0, 0, 255);
   writeData();
 
-  writeS3(84);
-  writeS2(84);
+  writeS3(78);
+  writeS2(78);
 
   if (abs(getVel()) < LANDED_THRESHOLD && abs(getAlt()) < LANDED_ALT_THRESHOLD) {
     stopRecording();
