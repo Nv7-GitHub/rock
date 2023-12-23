@@ -1,6 +1,6 @@
 #include "states.h"
 
-const int READY_THRESHOLD = 54; // m/s^2
+const int READY_THRESHOLD = 50; // m/s^2
 void groundState() {
   #ifdef DEBUG
   Serial.println("GROUND");

@@ -1,4 +1,4 @@
-const SERIAL_PORT: &str = "/dev/cu.usbmodem2101";
+const SERIAL_PORT: &str = "/dev/cu.usbmodem1101";
 const OUTPUT_PATH: &str = "flight.csv";
 use console::style;
 use indicatif::ProgressBar;
