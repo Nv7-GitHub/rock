@@ -8,9 +8,9 @@ void groundState() {
 
   ledWrite(255, 0, 0);
 
-  // Flight initial fin angles
-  writeS3(45);
-  writeS2(45);
+  // Ground angles
+  writeS3(30);
+  writeS2(30);
 
   if (getTotalAccel()  > READY_THRESHOLD) {
     setState(STATE_READY);
@@ -31,10 +31,11 @@ void readyState() {
   writeData();
 
   // Flight initial fin angles
-  writeS3(78);
-  writeS2(78);
+  writeS3(90);
+  writeS2(90);
 
   if (getAccel()  > LAUNCH_THRESHOLD) {
+    resetControl();
     setState(STATE_ASCENT);
   }
 }

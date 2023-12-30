@@ -25,6 +25,7 @@ struct DataFrame {
   float gz;
   float baro;
   float temp;
+  float target;
 };
 #pragma pack(pop)
 
@@ -97,6 +98,8 @@ extern float gyroz;
 
 extern float baroAlt;
 
+extern float target;
+
 unsigned long flightTime() {
   return millis() - startTime;
 }
@@ -120,6 +123,7 @@ void writeData() {
   data.gz = gyroz;
   data.baro = baroAlt;
   data.temp = getTemp();
+  data.target = target;
 
 
   // Write data

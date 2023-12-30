@@ -1,11 +1,11 @@
 const SERIAL_PORT: &str = "/dev/cu.usbmodem1101";
-const OUTPUT_PATH: &str = "flight.csv";
 use console::style;
 use indicatif::ProgressBar;
 use robust_arduino_serial::*;
 use serde::Serialize;
 use serial::{prelude::*, SystemPort};
 use std::io::Write;
+use std::path::Path;
 use std::slice;
 use std::time::Duration;
 use std::{io::Read, mem};
@@ -34,6 +34,7 @@ struct DataFrame {
     gz: f32,
     baro: f32,
     temp: f32,
+    target: f32,
 }
 const FRAME_SIZE: usize = mem::size_of::<DataFrame>();
 
@@ -100,9 +101,17 @@ fn main() {
     }
     pb.finish_and_clear();
 
+    // Get output file name
+    let mut output_path = "flight.csv".to_string();
+    let mut i = 0;
+    while Path::new(&output_path).exists() {
+        i += 1;
+        output_path = format!("flight{}.csv", i);
+    }
+
     // Write to CSV
     println!("{} Writing frames...", style("[4/6]").bold().dim());
-    let mut writer = csv::Writer::from_path(OUTPUT_PATH).unwrap();
+    let mut writer = csv::Writer::from_path(output_path).unwrap();
     for frame in frames {
         writer.serialize(frame).unwrap();
     }
