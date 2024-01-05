@@ -34,8 +34,8 @@ void loopControl() {
   float angle = p + integral + d;
   if (angle < 0) {
     angle = 0;
-  } else if (angle > 60) {
-    angle = 60;
+  } else if (angle > maxFinAngle()) {
+    angle = maxFinAngle();
   }
 
   // Write servos

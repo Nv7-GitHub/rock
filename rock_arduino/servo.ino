@@ -8,8 +8,8 @@ int S2pos;
 int S3pos;
 
 const int S1Offset = 0;
-const int S2Offset = -2;
-const int S3Offset = -11;
+const int S2Offset = -3;
+const int S3Offset = 6;
 
 void setupServos() {
   S1.attach(2, 900, 2100);
@@ -21,7 +21,7 @@ void setupServos() {
 }
 
 int getUs(int pos) {
-  return map(pos, 0, 180, 900, 2100);
+  return map(pos, 30, 150, 900, 2100);
 }
 
 void writeS1(int pos) {
@@ -37,6 +37,10 @@ void writeS2(int pos) {
 void writeS3(int pos) {
   S3pos = pos;
   S3.writeMicroseconds(getUs(pos + S3Offset));
+}
+
+int maxFinAngle() {
+  return 54;
 }
 
 int readS1() {

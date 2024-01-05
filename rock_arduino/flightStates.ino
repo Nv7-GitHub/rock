@@ -29,8 +29,8 @@ void descentState() {
   ledWrite(0, 0, 255);
   writeData();
 
-  writeS3(45);
-  writeS2(45);
+  writeS3(90-maxFinAngle());
+  writeS2(90-maxFinAngle());
 
   if (abs(getVel()) < LANDED_THRESHOLD && abs(getAlt()) < LANDED_ALT_THRESHOLD) {
     stopRecording();

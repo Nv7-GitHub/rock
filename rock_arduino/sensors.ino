@@ -22,6 +22,7 @@ void setupSensors() {
 }
 
 // Sensor values
+float grav;
 float accelx, accely, accelz;
 float gyrox, gyroy, gyroz;
 float baroAlt;
@@ -35,6 +36,8 @@ bool readSensors() {
   quat.z() = -quat.z();
   imu::Vector<3> linearaccel = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
   imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
+  imu::Vector<3> gravimu = bno.getVector(Adafruit_BNO055::VECTOR_GRAVITY); // For ready detect
+  grav = gravimu.y();
   imu::Vector<3> acc;
   // https://forums.adafruit.com/viewtopic.php?t=114125
   acc[0] = (1-2*(quat.y()*quat.y() + quat.z()*quat.z()))*linearaccel[0] +   (2*(quat.x()*quat.y() + quat.w()*quat.z()))*linearaccel[1] +   (2*(quat.x()*quat.z() - quat.w()*quat.y()))*linearaccel[2];  // rotate linearaccel by quaternion
@@ -90,8 +93,8 @@ float getAccel() {
   return accel;
 }
 
-float getTotalAccel() {
-  return abs(accelx) + abs(accely) + abs(accelz);
+float getGrav() {
+  return grav;
 }
 
 float getAlt() {

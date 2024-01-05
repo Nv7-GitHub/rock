@@ -1,6 +1,5 @@
 #include "states.h"
 
-const int READY_THRESHOLD = 50; // m/s^2
 void groundState() {
   #ifdef DEBUG
   Serial.println("GROUND");
@@ -9,10 +8,10 @@ void groundState() {
   ledWrite(255, 0, 0);
 
   // Ground angles
-  writeS3(30);
-  writeS2(30);
+  writeS3(90-maxFinAngle());
+  writeS2(90-maxFinAngle());
 
-  if (getTotalAccel()  > READY_THRESHOLD) {
+  if (getGrav() < -9) { // Flipped upside down
     setState(STATE_READY);
   }
 }
