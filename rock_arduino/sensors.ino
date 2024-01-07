@@ -29,7 +29,7 @@ float baroAlt;
 float temp;
 unsigned long lastRead = millis();
 double dT;
-bool readSensors() {
+void readSensors() {
   imu::Quaternion quat = bno.getQuat();
   quat.x() = -quat.x();
   quat.y() = -quat.y();
@@ -62,8 +62,6 @@ bool readSensors() {
   unsigned long deltaT = currentTime - lastRead;
   dT = ((double)deltaT) / 1000.0;
   lastRead = currentTime;
-
-  return true;
 }
 
 SimpleKalmanFilter altKf = SimpleKalmanFilter(0.04, 0.04, 0.01);

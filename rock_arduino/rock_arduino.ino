@@ -23,18 +23,20 @@ void setup() {
 }
 
 void setupError(const char* error) {
-  ledWrite(0, 255, 0);
+  int pow = 0;
   while (!Serial) {
     delay(10);
+    ledWrite(pow, 0, pow);
+    pow++;
+    if (pow > 128) {
+      pow = 0;
+    }
   }
   Serial.println(error);
 }
 
 void loop() {
-  if (!readSensors()) {
-    ledWrite(0, 0, 0);
-    return;
-  }
+  readSensors();
   predictPos();
   stateMachine();
 }

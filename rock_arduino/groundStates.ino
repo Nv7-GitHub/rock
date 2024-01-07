@@ -8,8 +8,8 @@ void groundState() {
   ledWrite(255, 0, 0);
 
   // Ground angles
-  writeS3(90-maxFinAngle());
-  writeS2(90-maxFinAngle());
+  writeS3(0);
+  writeS2(0);
 
   if (getGrav() < -9) { // Flipped upside down
     setState(STATE_READY);
