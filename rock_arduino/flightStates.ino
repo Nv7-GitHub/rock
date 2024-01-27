@@ -29,15 +29,15 @@ void descentState() {
   ledWrite(0, 0, 255);
   writeData();
 
-  writeS3(0);
-  writeS2(0);
+  // FLIGHT CONTROL (in case still going up)
+  loopControl();
 
   if (abs(getVel()) < LANDED_THRESHOLD && abs(getAlt()) < LANDED_ALT_THRESHOLD) {
     stopRecording();
     setState(STATE_TRANSFER);
     writeS1(90);
-    writeS2(90);
-    writeS3(90);
+    writeS2(0);
+    writeS3(0);
     transfer();
   }
 }

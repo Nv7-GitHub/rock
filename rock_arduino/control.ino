@@ -3,7 +3,7 @@
 float target; // Input
 float angle;
 
-const float Kp = 20;
+const float Kp = 10;
 const float Ki = 0;
 const float Kd = 0;
 
@@ -27,8 +27,8 @@ void loopControl() {
   }
   target = targetAlt[timeIndex];
   float e = getAlt() - target;
-  if (currTime < 4) {
-    e = 0; // ENABLE after 4 seconds
+  if (currTime < 3.5) {
+    e = 0; // ENABLE after 3.5 seconds
   }
 
   // Calculate PID
