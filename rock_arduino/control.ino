@@ -3,7 +3,7 @@
 float target; // Input
 float angle;
 
-const float Kp = 10;
+const float Kp = 13;
 const float Ki = 0;
 const float Kd = 0;
 
