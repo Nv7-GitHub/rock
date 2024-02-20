@@ -8,8 +8,8 @@ int S2pos;
 int S3pos;
 
 const int S1Offset = 0;
-const int S2Offset = 2;
-const int S3Offset = 3;
+const int S2Offset = 4;
+const int S3Offset = -2;
 
 void setupServos() {
   S1.attach(2, 900, 2100);
@@ -21,7 +21,7 @@ void setupServos() {
 }
 
 int getUs(int pos) {
-  return map(pos, 0, 130, 900, 2100);
+  return map(max(pos, 0), 0, 130, 900, 2100);
 }
 
 void writeS1(int pos) {
