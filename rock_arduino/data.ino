@@ -3,6 +3,8 @@
 #include <Adafruit_SPIFlash.h>
 // If you get QSPI compile error, check this: https://github.com/adafruit/Adafruit_SPIFlash/issues/141
 
+const int FLASH_SIZE = 8*1024*1024;
+
 Adafruit_FlashTransport_SPI flashTransport(SS, SPI);
 Adafruit_SPIFlash flash(&flashTransport);
 
@@ -105,6 +107,10 @@ unsigned long flightTime() {
 }
 
 void writeData() {
+  if (((frameCount + 1) * sizeof(frameBuffer)) > FLASH_SIZE) { // Out of space on flash chip!
+    return;
+  }
+
   DataFrame data;
   data.time = flightTime();
   data.state = getState();
