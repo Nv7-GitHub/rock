@@ -15,8 +15,8 @@ void setup() {
   Serial.println("CONNECTED");
   #endif
 
-  setupSensors();
   setupData();
+  setupSensors();
   setupServos();
 
   setState(STATE_GROUND);

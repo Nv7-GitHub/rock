@@ -20,6 +20,12 @@ void setupServos() {
   writeS3(90);
 }
 
+void detachServos() {
+  S1.detach();
+  S2.detach();
+  S3.detach();
+}
+
 int getUs(int pos) {
   return map(max(pos, 0), 0, 130, 900, 2100);
 }

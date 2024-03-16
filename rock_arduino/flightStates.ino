@@ -35,9 +35,7 @@ void descentState() {
   if (abs(getVel()) < LANDED_THRESHOLD && abs(getAlt()) < LANDED_ALT_THRESHOLD) {
     stopRecording();
     setState(STATE_TRANSFER);
-    writeS1(90);
-    writeS2(0);
-    writeS3(0);
+    detachServos();
     transfer();
   }
 }
