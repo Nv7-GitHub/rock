@@ -27,7 +27,7 @@ void readyState() {
   }
 
   ledWrite(255, 0, 0);
-  writeData();
+  //writeData(); // Un-comment this to debug launch detection
 
   // Flight initial fin angles
   writeS3(90);

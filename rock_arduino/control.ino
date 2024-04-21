@@ -6,6 +6,7 @@ float angle;
 const float Kp = 7; // Use 10 if mass is 560ish
 const float Ki = 0;
 const float Kd = 0;
+const float START = 2.25;
 
 int timeIndex = 0;
 
@@ -27,7 +28,7 @@ void loopControl() {
   }
   target = targetAlt[timeIndex];
   float e = getAlt() - target;
-  if (currTime < 3) {
+  if (currTime < START) {
     e = 0; // ENABLE after 3 seconds
   }
 
@@ -40,6 +41,10 @@ void loopControl() {
     angle = 0;
   } else if (angle > 75) {
     angle = 75;
+  }
+
+  if (currTime < START) {
+    angle = 5;
   }
 
   // Write servos
