@@ -10,6 +10,7 @@ Cd = 0.57
 m = 0.552
 g = 9.81
 h = 1/100
+P = 10
 
 # Initial conditions
 """
@@ -34,6 +35,15 @@ def v(v):
 def a(t, v):
     return -(1/2)*p*A*Cd*v*v/m - g + thrust(t)/m
 
+# Calculates Cd from fin angle
+def cd(angle):
+    if angle > 90:
+        angle = 90
+    if angle < 0:
+        angle = 0
+    global Cd
+    Cd = (0.0000142*angle*angle*angle + 0.001512*angle*angle - 0.0075534*angle)*0.1 + 0.57
+
 # Solve using Runge-Kutta 4th order method
 def solve_iter(ti, xi, vi):
     k0 = h*v(vi)
@@ -53,11 +63,24 @@ def solve_iter(ti, xi, vi):
         vi + (1/6) * (l0 + 2*l1 + 2*l2 + l3)
     )
 
+def get_apogee(ti, vi, xi):
+    t = ti
+    while vi > 0 or t == 0:
+        res = solve_iter(t, xi, vi)
+        xi = res[0]
+        vi = res[1]
+        t += h
+    #print(xi)
+    return xi
+
+
 t = ti
 t_plt = []
 x_plt = []
 v_plt = []
 a_plt = []
+ang_plt = []
+erri = 0
 while vi > 0 or t == 0:
    res = solve_iter(t, xi, vi)
    xi = res[0]
@@ -68,22 +91,41 @@ while vi > 0 or t == 0:
    x_plt.append(xi)
    v_plt.append(vi)
    a_plt.append(a(t, vi))
+   
+   # Run controller
+   if t >= 1.75:
+    err = get_apogee(t, vi, xi) - 250
+    erri += err * h
+    cd(erri * P)
+    val = err * P
+    if val > 90:
+        val = 90
+    if val < 0:
+        val = 0
+    ang_plt.append(val)
+   else:
+       ang_plt.append(0)
+
 
    print(t, xi, vi)
 
-fig, (ax1, ax2, ax3) = plt.subplots(3)
-ax1.plot(t_plt, x_plt)
-ax1.set_xlabel("Time (s)")
-ax1.set_ylabel("Altitude (m)")
+fig, ax = plt.subplots(2, 2)
+ax[0, 0].plot(t_plt, x_plt)
+ax[0, 0].set_xlabel("Time (s)")
+ax[0, 0].set_ylabel("Altitude (m)")
 
-ax2.plot(t_plt, v_plt)
-ax2.set_xlabel("Time (s)")
-ax2.set_ylabel("Velocity (m/s)")
+ax[0, 1].plot(t_plt, v_plt)
+ax[0, 1].set_xlabel("Time (s)")
+ax[0, 1].set_ylabel("Velocity (m/s)")
 
-ax3.plot(t_plt, a_plt)
-ax3.plot([0, t_plt[-1]], [0, 0], "-.")
-ax3.set_xlabel("Time (s)")
-ax3.set_ylabel("Acceleration (m/s^2)")
+ax[1, 0].plot(t_plt, a_plt)
+ax[1, 0].plot([0, t_plt[-1]], [0, 0], "-.")
+ax[1, 0].set_xlabel("Time (s)")
+ax[1, 0].set_ylabel("Acceleration (m/s^2)")
+
+ax[1, 1].plot(t_plt, ang_plt)
+ax[1, 1].set_xlabel("Time (s)")
+ax[1, 1].set_ylabel("Canard Angle (deg)")
 
 fig.canvas.manager.set_window_title("Rock Predict")
 
