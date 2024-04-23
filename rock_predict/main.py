@@ -10,7 +10,7 @@ Cd = 0.57
 m = 0.552
 g = 9.81
 h = 1/100
-P = 10
+P = 50
 
 # Initial conditions
 """
@@ -32,7 +32,9 @@ vi = 0
 def v(v):
     return v
 
-def a(t, v):
+def a(t, v, real):
+    if (real):
+        return -(1/2)*p*A*Cd*(v+2)*(v+2)/m - g + thrust(t)/m
     return -(1/2)*p*A*Cd*v*v/m - g + thrust(t)/m
 
 # Calculates Cd from fin angle
@@ -45,18 +47,18 @@ def cd(angle):
     Cd = (0.0000142*angle*angle*angle + 0.001512*angle*angle - 0.0075534*angle)*0.1 + 0.57
 
 # Solve using Runge-Kutta 4th order method
-def solve_iter(ti, xi, vi):
+def solve_iter(ti, xi, vi, real):
     k0 = h*v(vi)
-    l0 = h*a(ti, vi)
+    l0 = h*a(ti, vi, real)
 
     k1 = h*v(vi+0.5*k0)
-    l1 = h*a(ti+0.5*h, vi+0.5*k0)
+    l1 = h*a(ti+0.5*h, vi+0.5*k0, real)
 
     k2 = h*v(vi+0.5*k1)
-    l2 = h*a(ti+0.5*h, vi+0.5*k1)
+    l2 = h*a(ti+0.5*h, vi+0.5*k1, real)
 
     k3 = h*v(vi+k2)
-    l3 = h*a(ti+h, vi+k2)
+    l3 = h*a(ti+h, vi+k2, real)
 
     return (
         xi + (1/6) * (k0 + 2*k1 + 2*k2 + k3),
@@ -65,8 +67,10 @@ def solve_iter(ti, xi, vi):
 
 def get_apogee(ti, vi, xi):
     t = ti
+    #vi = vi - 3
+    #xi = xi + uniform(-2, 2)
     while vi > 0 or t == 0:
-        res = solve_iter(t, xi, vi)
+        res = solve_iter(t, xi, vi, False)
         xi = res[0]
         vi = res[1]
         t += h
@@ -79,10 +83,11 @@ t_plt = []
 x_plt = []
 v_plt = []
 a_plt = []
+pre_plt = []
 ang_plt = []
 erri = 0
 while vi > 0 or t == 0:
-   res = solve_iter(t, xi, vi)
+   res = solve_iter(t, xi, vi, True)
    xi = res[0]
    vi = res[1]
    t += h
@@ -90,29 +95,34 @@ while vi > 0 or t == 0:
    t_plt.append(t)
    x_plt.append(xi)
    v_plt.append(vi)
-   a_plt.append(a(t, vi))
+   a_plt.append(a(t, vi, True))
    
    # Run controller
    if t >= 1.75:
     err = get_apogee(t, vi, xi) - 250
+    pre_plt.append(err)
     erri += err * h
     cd(erri * P)
-    val = err * P
+    val = erri * P
     if val > 90:
         val = 90
     if val < 0:
         val = 0
     ang_plt.append(val)
    else:
+       pre_plt.append(0)
        ang_plt.append(0)
 
 
    print(t, xi, vi)
 
 fig, ax = plt.subplots(2, 2)
-ax[0, 0].plot(t_plt, x_plt)
-ax[0, 0].set_xlabel("Time (s)")
-ax[0, 0].set_ylabel("Altitude (m)")
+ax2 = ax[0, 0].twinx()
+ax2.plot(t_plt, x_plt)
+ax2.set_xlabel("Time (s)")
+ax2.set_ylabel("Altitude (m)")
+ax[0, 0].plot(t_plt, pre_plt, "-.", color="red")
+ax[0, 0].set_ylabel("Predicted Apogee Error (m)")
 
 ax[0, 1].plot(t_plt, v_plt)
 ax[0, 1].set_xlabel("Time (s)")
