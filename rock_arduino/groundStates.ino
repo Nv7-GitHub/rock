@@ -35,6 +35,7 @@ void readyState() {
 
   if (getAccel()  > LAUNCH_THRESHOLD) {
     resetControl();
+    resetRecording();
     setState(STATE_ASCENT);
   }
 }

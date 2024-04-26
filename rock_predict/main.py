@@ -9,8 +9,10 @@ A = 0.003425
 Cd = 0.57
 m = 0.552
 g = 9.81
-h = 1/100
+h = 0.1
 P = 50
+I = 0
+D = 0
 
 # Initial conditions
 """
@@ -33,8 +35,8 @@ def v(v):
     return v
 
 def a(t, v, real):
-    if (real):
-        return -(1/2)*p*A*Cd*(v+2)*(v+2)/m - g + thrust(t)/m
+    #if (real):
+        #return -(1/2)*p*A*Cd*(v)*(v)/m - g + thrust(t)*0.9/m
     return -(1/2)*p*A*Cd*v*v/m - g + thrust(t)/m
 
 # Calculates Cd from fin angle
@@ -44,7 +46,7 @@ def cd(angle):
     if angle < 0:
         angle = 0
     global Cd
-    Cd = (0.0000142*angle*angle*angle + 0.001512*angle*angle - 0.0075534*angle)*0.1 + 0.57
+    Cd = (0.0000142*angle*angle*angle + 0.001512*angle*angle - 0.0075534*angle)*0 + 0.57
 
 # Solve using Runge-Kutta 4th order method
 def solve_iter(ti, xi, vi, real):
@@ -85,36 +87,43 @@ v_plt = []
 a_plt = []
 pre_plt = []
 ang_plt = []
-erri = 0
+control = 0
+err_i = 0
+err_d = 0
 while vi > 0 or t == 0:
-   res = solve_iter(t, xi, vi, True)
-   xi = res[0]
-   vi = res[1]
-   t += h
+    res = solve_iter(t, xi, vi, True)
+    xi = res[0]
+    vi = res[1]
+    t += h
 
-   t_plt.append(t)
-   x_plt.append(xi)
-   v_plt.append(vi)
-   a_plt.append(a(t, vi, True))
+    t_plt.append(t)
+    x_plt.append(xi)
+    v_plt.append(vi)
+    a_plt.append(a(t, vi, True))
    
-   # Run controller
-   if t >= 1.75:
-    err = get_apogee(t, vi, xi) - 250
-    pre_plt.append(err)
-    erri += err * h
-    cd(erri * P)
-    val = erri * P
-    if val > 90:
-        val = 90
-    if val < 0:
-        val = 0
-    ang_plt.append(val)
-   else:
+    # Run controller
+    if t >= 1.75:
+        err = get_apogee(t, vi, xi) - 243 # 259 for 850, 243 for 800, 250 for 820
+        pre_plt.append(err)
+
+        # PID
+        output = P*err + I*err_i - D*(err - err_d)/h
+        err_i += err * h
+        err_d = err
+        control += output*h
+        if control > 75:
+            control = 75
+        if control < 0:
+            control = 0
+        cd(control)
+        #print(err, control)
+        ang_plt.append(control)
+    else:
        pre_plt.append(0)
        ang_plt.append(0)
-
-
-   print(t, xi, vi)
+    if (t >= 1):
+       print(t, xi)
+   #print(t, xi, vi)
 
 fig, ax = plt.subplots(2, 2)
 ax2 = ax[0, 0].twinx()

@@ -65,7 +65,6 @@ void readSensors() {
 }
 
 SimpleKalmanFilter altKf = SimpleKalmanFilter(0.04, 0.04, 0.01);
-SimpleKalmanFilter velKf = SimpleKalmanFilter(0.03, 0.03, 0.01);
 
 float lastAlt;
 
@@ -76,7 +75,11 @@ float roll;
 void predictPos() {
   accel = accelz;
   alt = altKf.updateEstimate((double)baroAlt);
-  vel = velKf.updateEstimate((double)(alt - lastAlt) / dT); // TODO: Combine with accelz
+  if (flightTime() < 1000) {
+    vel = 90; // Actual value: 92.14612321670953 (I made it a little lower because its better to under-correct than over-correct), in the future when have 16g accelerometer this can go away
+  } else {
+    vel += accelz * dT;
+  }
   lastAlt = alt;
   roll = gyrox;
 }

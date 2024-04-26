@@ -75,6 +75,9 @@ void startRecording() {
   startTime = millis();
   sensorStartRecording();
 }
+void resetRecording() {
+  startTime = millis();
+}
 
 void stopRecording() {
   startTime = 0;

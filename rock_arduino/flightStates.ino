@@ -19,7 +19,7 @@ void ascentState() {
   loopControl();
 }
 
-const float LANDED_THRESHOLD = 0.05; // Velocity on the ground
+//const float LANDED_THRESHOLD = 0.05; // Velocity on the ground
 const float LANDED_ALT_THRESHOLD = 1.25; // Have to be within this far from starting alt to be landed
 void descentState() {
   #ifdef DEBUG
@@ -32,7 +32,7 @@ void descentState() {
   // FLIGHT CONTROL (in case still going up)
   loopControl();
 
-  if (abs(getVel()) < LANDED_THRESHOLD && abs(getAlt()) < LANDED_ALT_THRESHOLD) {
+  if (/*abs(getVel()) < LANDED_THRESHOLD && */abs(getAlt()) < LANDED_ALT_THRESHOLD) {
     stopRecording();
     setState(STATE_TRANSFER);
     detachServos();
