@@ -76,7 +76,7 @@ void predictPos() {
   accel = accelz;
   alt = altKf.updateEstimate((double)baroAlt);
   if (flightTime() < 1000) {
-    vel = 83; // Actual value: 92.14612321670953 (I made it a little lower because its better to under-correct than over-correct), in the future when have 16g accelerometer this can go away
+    vel = 82.5; // Actual value: 92.14612321670953 (I made it a little lower because its better to under-correct than over-correct), in the future when have 16g accelerometer this can go away
     // Use vel = 89 for flight comp 2
   } else {
     vel += accelz * dT;

@@ -8,7 +8,7 @@ int S2pos;
 int S3pos;
 
 const int S1Offset = 0;
-const int S2Offset = -4; // 4 for flight comp 1, -4 for flight comp 2
+const int S2Offset = 4; // 4 for flight comp 1, -4 for flight comp 2
 const int S3Offset = -2; // -2 for both flight comps
 
 void setupServos() {

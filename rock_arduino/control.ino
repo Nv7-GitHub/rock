@@ -12,8 +12,8 @@ const float A = 0.003425; // Reference area
 const float g = 9.81; // Gravity
 
 // User-entered
-const float m = 0.561; // Mass of rocket (kg)
-const float goal = 243.84*1.016; // Altitude target (m), 259.08 for flight comp 1, 243.84 for flight comp 2
+const float m = 0.572; // Mass of rocket (kg)
+const float goal = 259.08 + 1.524; // Altitude target (m), 259.08 for flight comp 1, 243.84 for flight comp 2
 float Cd = 0.57;
 
 float integral = 0;
@@ -67,7 +67,7 @@ struct IterResult {
 };
 
 float calcCd(float inp) {
-  return (0.0000142*inp*inp*inp + 0.001512*inp*inp - 0.0075534*inp)*0.13 + 0.57;
+  return (0.0000142*inp*inp*inp + 0.001512*inp*inp - 0.0075534*inp)*0.2 + 0.57;
 }
 
 float calcAccel(float t, float v) {
