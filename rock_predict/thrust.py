@@ -12,7 +12,7 @@ with open(ASCENT, "r") as f:
         except ValueError: # Headers
             continue
 
-DESCENT = "AeroTech_F35W.csv"
+DESCENT = "AeroTech_E18W.csv"
 with open(DESCENT, "r") as f:
     r = csv.reader(f)
     for row in r:

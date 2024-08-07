@@ -8,7 +8,7 @@ import data
 p = 1.229
 A = 0.003425
 Cd = 0.38
-m = 0.949
+m = 0.600
 g = 9.81
 h = 0.01
 P = 0
@@ -39,8 +39,11 @@ t_start = 100
 def a(t, v, real):
     global m
     if v < 0:
-        m = 0.749
-    return -(1/2)*p*A*Cd*v*v/m - g + thrustAscent(t)/m + thrustDescent(t - t_start)/m
+        m = 0.530
+    mult = 1
+    if v < 0:
+        mult = -1
+    return mult*-(1/2)*p*A*Cd*v*v/m - g + thrustAscent(t)*0.95/m + thrustDescent(t - t_start)/m
 
 # Calculates Cd from fin angle
 def cd(angle):
@@ -138,10 +141,9 @@ while xi > 0 or t < 0.1:
         ang_plt.append(control)
 
         # Control descent motor
-        if (vi < 0):
-            m = 0.649
-        if (vi < -80 and t_start > 99):
+        if ((vi < -61) and t_start > 99):
             t_start = t + 0.5
+            print("DEPLOY AT", xi, "meters AGL")
     else:
        pre_plt.append(get_apogee(t, v_val, xi) - 259.08*1.016)
        ang_plt.append(0)
