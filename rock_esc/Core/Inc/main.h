@@ -61,6 +61,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define VBUS_MEAS_Pin GPIO_PIN_3
 #define VBUS_MEAS_GPIO_Port GPIOA
+#define DRVOFF_Pin GPIO_PIN_7
+#define DRVOFF_GPIO_Port GPIOC
 #define TIMING_Pin GPIO_PIN_9
 #define TIMING_GPIO_Port GPIOC
 
